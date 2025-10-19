@@ -1,0 +1,101 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Список Постачань" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-truck"></i> {% trans "Постачання на склад" %}</h2>
+    <a href="{% url 'inventory:supply_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> {% trans "Створити постачання" %}
+    </a>
+</div>
+<div class="mb-3">
+    <form method="get" class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="{% trans 'Пошук по постачальнику або товару...' %}" aria-label="Search" name="q" value="{{ request.GET.q|default_if_none:'' }}">
+        <button class="btn btn-outline-primary" type="submit">{% trans "Пошук" %}</button>
+        <a href="{% url 'inventory:supply_list' %}" class="btn btn-outline-secondary ms-2">{% trans "Очистити" %}</a>
+    </form>
+</div>
+
+{% if not supplies %}
+    <div class="alert alert-info">{% trans "Ще немає жодного постачання." %}</div>
+{% else %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "№" %}</th>
+                        <th>{% trans "Постачальник" %}</th>
+                        <th>{% trans "Позиції" %}</th>
+                        <th>{% trans "Всього (шт.)" %}</th>
+                        <th> {% trans "Дата" %}</th>
+                        <th>{% trans "Статус" %}</th>
+                        <th>{% trans "Дії" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supply in supplies %}
+                    <tr>
+                        <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                        <td>{{ supply.supplier }}</td>
+                        <td>
+                            <ul class="list-unstyled mb-0">
+                                {% for item in supply.items.all %}
+                                <li>{{ item.product.name }} - {{ item.quantity }} {% trans "шт." %}</li>
+                                {% empty %}
+                                <li>{% trans "Немає позицій" %}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td><strong>{{ supply.total_units }}</strong></td>
+                        <td>{{ supply.created_at }}</td>
+                        <td>
+                            {% if supply.status == 'COMPLETED' %}
+                                <span class="badge bg-success">{{ supply.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ supply.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if supply.status == 'PENDING' %}
+                            <div class="d-flex flex-column gap-2">
+                                {# Кнопка "Прийняти на склад" #}
+                                <form action="{% url 'inventory:supply_process' supply.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success w-100" onclick="return confirm('{% trans "Ви впевнені, що хочете прийняти це постачання? Залишки на складі будуть оновлені." %}')">
+                                        <i class="bi bi-check-circle"></i> {% trans "Прийняти на склад" %}
+                                    </button>
+                                </form>
+                                {# Кнопка "Видалити" #}
+                                <form action="{% url 'inventory:supply_delete' supply.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger w-100" onclick="return confirm('{% trans "Ви впевнені, що хочете видалити це постачання? Це дія незворотна." %}')">
+                                        <i class="bi bi-trash"></i> {% trans "Видалити" %}
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page=1&q={{ search_query }}">&laquo;&laquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}">&laquo;</a></li>{% endif %}
+        <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}.</span></li>
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}">&raquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ search_query }}">&raquo;&raquo;</a></li>{% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

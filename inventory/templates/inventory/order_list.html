@@ -1,0 +1,299 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Активні Замовлення" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0"><i class="bi bi-receipt"></i> {% trans "Активні Замовлення" %}</h2>
+    <div class="d-flex align-items-center gap-2">
+        {# Експорт PDF - збереження фільтрів #}
+        <a href="{% url 'inventory:export_orders_pdf' %}?q={{ request.GET.q|default:'' }}&delivery_date_filter={{ request.GET.delivery_date_filter|default:'' }}" class="btn btn-info"><i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-sm-inline">{% trans "Експорт в PDF" %}</span></a>
+        {% if active_shift %}
+            <a href="{% url 'inventory:order_add' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">{% trans "Створити замовлення" %}</span></a>
+        {% endif %}
+    </div>
+</div>
+
+{# --- ФОРМА ФІЛЬТРАЦІЇ ТА ПОШУКУ (ЗАЛИШАЄМО БЕЗ ЗМІН) --- #}
+<div class="mb-4">
+    <form method="get" class="row g-3 align-items-end" role="search">
+
+        {# Пошук за текстом #}
+        <div class="col-12 col-md-5 col-lg-4">
+            <label for="id_q" class="form-label">{% trans "Пошук (Замовник/Товар)" %}</label>
+            <input type="text"
+                   name="q"
+                   id="id_q"
+                   class="form-control"
+                   placeholder="{% trans "Пошук..." %}"
+                   value="{{ request.GET.q|default:'' }}">
+        </div>
+
+        {# Фільтрація за Датою Доставки #}
+        <div class="col-12 col-md-4 col-lg-3">
+            <label for="id_delivery_date_filter" class="form-label">{% trans "Дата доставки" %}</label>
+            <input type="date"
+                   name="delivery_date_filter"
+                   id="id_delivery_date_filter"
+                   class="form-control"
+                   value="{{ selected_delivery_date|default:'' }}">
+        </div>
+
+        {# Кнопки дій #}
+        <div class="col-12 col-md-3 col-lg-5 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> {% trans "Фільтрувати" %}
+            </button>
+
+            {# Кнопка Скинути (показуємо, якщо є будь-який активний фільтр) #}
+            {% if request.GET.q or request.GET.delivery_date_filter %}
+                <a href="{% url 'inventory:order_list' %}" class="btn btn-outline-secondary">
+                    {% trans "Очистити" %}
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{# --- КІНЕЦЬ ФОРМИ ФІЛЬТРАЦІЇ ТА ПОШУКУ --- #}
+
+
+{% if not orders %}
+    {# Перевіряємо `orders` для відображення повідомлення про відсутність замовлень #}
+    <div class="alert alert-info">{% trans "Активних замовлень не знайдено." %}</div>
+{% else %}
+
+    {# Ітеруємося по згрупованих замовленнях #}
+    {% for delivery_date, daily_orders in grouped_orders %}
+
+        {# --- ВІЗУАЛЬНО ВИДІЛЕНА ГРУПА (ЗАГОЛОВОК) --- #}
+        <h3 class="mt-4 mb-3 border-bottom pb-2">
+            <i class="bi bi-calendar-check-fill text-primary"></i>
+            {% trans "Дата доставки" %}:
+            <strong>{{ delivery_date|date:"d.m.Y"|default:"Без дати доставки" }}</strong>
+            {% if delivery_date and delivery_date == today %}
+                <span class="badge bg-danger ms-2">{% trans "Сьогодні" %}</span>
+            {% endif %}
+        </h3>
+
+        {# --- КАРТКА ДЛЯ ТАБЛИЦІ (ВІЗУАЛЬНИЙ БЛОК) --- #}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">{% trans "№" %}</th>
+                                <th style="width: 15%;">{% trans "Замовник" %}</th>
+                                <th>{% trans "Позиції" %}</th>
+                                <th style="width: 10%;">{% trans "Автомобіль" %}</th>
+                                <th style="width: 10%;">{% trans "Водій" %}</th> {# <--- ДОДАНО: Колонка "Водій" #}
+                                <th style="width: 15%;">{% trans "Примітки" %}</th>
+                                <th style="width: 10%;">{% trans "Статус" %}</th>
+                                <th style="width: 100px;">{% trans "Дії" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {# Ітеруємося по замовленнях всередині поточної групи #}
+                            {% for order in daily_orders %}
+                            <tr>
+                                {# Нумерація з вашої логіки в get_context_data #}
+                                <td>{{ page_obj.start_index|add:order.forloop_counter0 }}</td>
+                                <td class="fw-bold">{{ order.customer }}</td>
+                                <td>
+                                    {# Зменшений шрифт для списку позицій #}
+                                    <ul class="list-unstyled mb-0 small">
+                                        {% for item in order.items.all %}
+                                        <li>{{ item.product.name }} - **{{ item.ordered_units }}** {% trans "шт." %}</li>
+                                        {% empty %}
+                                        <li class="text-muted">{% trans "Немає позицій" %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                {# Автомобіль #}
+                                <td>
+                                    {% if order.car %}
+                                        <span class="fw-bold">{{ order.car }}</span>
+                                        {% else %}
+                                        <span class="text-muted">–</span>
+                                    {% endif %}
+                                </td>
+                                {# <--- ДОДАНО: Дані Водія #}
+                                <td>
+                                    {% if order.driver %}
+                                        {{ order.driver }}
+                                    {% else %}
+                                        <span class="text-muted">–</span>
+                                    {% endif %}
+                                </td>
+                                {# КІНЕЦЬ ДОДАНОГО БЛОКУ #}
+                                <td><span class="small text-muted">{{ order.notes|linebreaksbr|default:"-" }}</span></td>
+                               <td>
+                                    {# Використовуємо класи для значків Bootstrap #}
+                                    {% if order.status == 'SHIPPED' %}<span class="badge bg-success">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'PENDING' %}<span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'LOADED' %}<span class="badge bg-info">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'CANCELLED' %}<span class="badge bg-danger">{{ order.get_status_display }}</span>
+                                    {% else %}<span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if active_shift %}
+                                    <div class="d-flex gap-1 flex-nowrap">
+                                        {% if order.status == 'PENDING' %}
+                                            <form action="{% url 'inventory:order_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-info" title='{% trans "Готове/Завантажено" %}'><i class="bi bi-box-arrow-up"></i></button></form>
+                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Редагувати" %}'><i class="bi bi-pencil-fill"></i></a>
+                                            <form action="{% url 'inventory:order_cancel' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning" title='{% trans "Скасувати замовлення" %}' onclick="return confirm('{% trans "Ви впевнені, що хочете скасувати це замовлення? Товар буде повернуто на склад." %}')"><i class="bi bi-x-circle"></i></button></form>
+                                        {% elif order.status == 'LOADED' %}
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#driverModal"
+                                                    data-order-id="{{ order.pk }}"
+                                                    data-order-customer="{{ order.customer }}"
+                                                    data-driver-id="{{ order.driver.pk|default_if_none:'' }}"
+                                                    data-car-id="{{ order.car.pk|default_if_none:'' }}"
+                                                    data-action-url="{% url 'inventory:order_ship' pk=order.pk %}"
+                                                    title='{% trans "Відправити" %}'>
+                                                <i class="bi bi-truck"></i>
+                                            </button>
+                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Відхилити завантаження" %}'><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                        {% elif order.status == 'CANCELLED' %}
+                                            <form action="{% url 'inventory:delete_cancelled_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Видалити назавжди" %}' onclick="return confirm('{% trans "Ви впевнені, що хочете остаточно видалити це скасоване замовлення? Цю дію неможливо буде скасувати." %}')"><i class="bi bi-trash-fill"></i></button></form>
+                                        {% else %}
+                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Переглянути" %}'><i class="bi bi-eye-fill"></i></a>
+                                            <form action="{% url 'inventory:soft_delete_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-secondary" title='{% trans "Перемістити до архіву" %}' onclick="return confirm('{% trans "Ви впевнені, що хочете заархівувати це замовлення?" %}')"><i class="bi bi-archive-fill"></i></button></form>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    {% empty %}
+        {# Цей блок буде показано, якщо `grouped_orders` порожній #}
+        <div class="alert alert-info">{% trans "Активних замовлень не знайдено." %}</div>
+    {% endfor %}
+
+{% endif %}
+
+{# БЛОК ПАГІНАЦІЇ ЗАЛИШАЄТЬСЯ БЕЗ ЗМІН #}
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {# Додаємо параметри фільтрації до пагінації #}
+        {% with q=request.GET.q|default:'' delivery_date=request.GET.delivery_date_filter|default:'' %}
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&q={{ q }}&delivery_date_filter={{ delivery_date }}">&laquo;&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ delivery_date }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}.</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ delivery_date }}">&raquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}&delivery_date_filter={{ delivery_date }}">&raquo;&raquo;</a></li>
+            {% endif %}
+        {% endwith %}
+    </ul>
+</nav>
+{% endif %}
+
+{# МОДАЛЬНЕ ВІКНО І JS-КОД ЗАЛИШАЮТЬСЯ БЕЗ ЗМІН #}
+<div class="modal fade" id="driverModal" tabindex="-1" aria-labelledby="driverModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="driverModalLabel">{% trans "Інформація про водія для відправки" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="driverForm" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+            <p>{% trans "Замовлення" %} №: <strong id="modalOrderId"></strong></p>
+            <p>{% trans "Замовник" %}: <strong id="modalCustomerName"></strong></p>
+            <div class="mb-3">
+               <label for="{{ driver_form.driver.id_for_label }}" class="form-label">{{ driver_form.driver.label }}*</label>
+                {{ driver_form.driver }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ driver_form.car.id_for_label }}" class="form-label">{{ driver_form.car.label }}</label>
+                {{ driver_form.car }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ driver_form.nickname.id_for_label }}" class="form-label">{{ driver_form.nickname.label }}</label>
+                {{ driver_form.nickname }}
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Закрити" %}</button>
+          <button type="submit" class="btn btn-primary">{% trans "Зберегти та відправити" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var driverModal = document.getElementById('driverModal');
+    if(driverModal) {
+        driverModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var orderId = button.getAttribute('data-order-id');
+            var customerName = button.getAttribute('data-order-customer');
+
+            // 👇 НОВИЙ КОД: Отримуємо коректний URL з атрибута кнопки
+            var actionUrl = button.getAttribute('data-action-url');
+
+            // 1. Отримання збережених ID водія та автомобіля
+            var savedDriverId = button.getAttribute('data-driver-id');
+            var savedCarId = button.getAttribute('data-car-id');
+
+            var modalOrderId = driverModal.querySelector('#modalOrderId');
+            var modalCustomerName = driverModal.querySelector('#modalCustomerName');
+            var driverForm = driverModal.querySelector('#driverForm');
+
+            // 2. Знаходимо <select> елементи форми
+            var driverSelect = driverForm.querySelector('#{{ driver_form.driver.id_for_label }}');
+            var carSelect = driverForm.querySelector('#{{ driver_form.car.id_for_label }}');
+
+            // Оновлюємо вміст заголовків
+            if (modalOrderId) {
+                modalOrderId.textContent = orderId;
+            }
+            if (modalCustomerName) {
+                modalCustomerName.textContent = customerName;
+            }
+
+            // Оновлений URL для відправки
+            if (actionUrl) {
+                driverForm.setAttribute('action', actionUrl);
+            }
+
+            // Обов'язково скидаємо форму перед заповненням
+            driverForm.reset();
+
+            // 3. ПІДСТАНОВКА ЗБЕРЕЖЕНИХ ЗНАЧЕНЬ
+
+            // Водій
+            if (driverSelect && savedDriverId) {
+                 driverSelect.value = savedDriverId;
+            }
+
+            // Автомобіль
+            if (carSelect && savedCarId) {
+                carSelect.value = savedCarId;
+            }
+
+            // Поле nickname залишається порожнім
+        });
+    }
+});
+</script>
+{% endblock %}

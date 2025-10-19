@@ -1,0 +1,86 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Історія руху товару" %}: {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>
+        <i class="bi bi-list-ol"></i>
+        {% trans "Історія руху товару" %}: <strong>{{ product.name }}</strong>
+    </h2>
+    <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> {% trans "До списку продуктів" %}
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Час" %}</th>
+                        <th>{% trans "Користувач" %}</th>
+                        <th>{% trans "Тип транзакції" %}</th>
+                        <th>{% trans "Зміна (шт.)" %}</th>
+                        <th>{% trans "Новий залишок" %}</th>
+                        <th>{% trans "Пов'язаний документ" %}</th>
+                        <th>{% trans "Примітки" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in movements %}
+                    <tr>
+                        <td>{{ movement.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        {# Додано відображення користувача #}
+                        <td>{{ movement.user.username|default:"-" }}</td>
+                        <td>{{ movement.get_movement_type_display }}</td>
+                        <td>
+                            {% if movement.quantity_change > 0 %}
+                                <strong class="text-success">+{{ movement.quantity_change }}</strong>
+                            {% else %}
+                                <strong class="text-danger">{{ movement.quantity_change }}</strong>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ movement.new_total_units }}</strong></td>
+                        <td>
+                            {% if movement.related_order %}
+                                <a href="{% url 'inventory:order_edit' movement.related_order.pk %}">{% trans "Замовлення" %} ID- {{ movement.related_order.id }}</a>
+                            {% elif movement.related_supply %}
+                                {% trans "Постачання" %} ID- {{ movement.related_supply.id }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ movement.notes|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">{% trans "Історія руху для цього товару відсутня." %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination block -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo;&laquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

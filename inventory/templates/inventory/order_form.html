@@ -1,0 +1,261 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<h2>{{ page_title }}{% if order.id %} №{{ order.id }}{% endif %}</h2>
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+{% if order.status == 'SHIPPED' or order.is_deleted %}
+<div class="alert alert-info" role="alert">
+    <i class="bi bi-info-circle-fill"></i> {% trans "Це замовлення доступне тільки для перегляду." %}
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">{% trans "Інформація про замовлення" %}</div>
+        <div class="card-body">
+
+            <div class="row">
+                {# --- Дата Доставки --- #}
+                <div class="col-md-3 mb-3">
+                    <label for="{{ order_form.delivery_date.id_for_label }}" class="form-label fw-bold">
+                        {{ order_form.delivery_date.label }}
+                    </label>
+                    {{ order_form.delivery_date }}
+                    {% if order_form.delivery_date.errors %}
+                        <div class="text-danger small">{{ order_form.delivery_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                {# --- Замовник --- #}
+                <div class="col-md-9 mb-3">
+                    <label for="{{ order_form.customer.id_for_label }}" class="form-label fw-bold">
+                        {{ order_form.customer.label }}
+                    </label>
+                    {{ order_form.customer }}
+                    {% if order_form.customer.errors %}
+                        <div class="text-danger small">{{ order_form.customer.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                {# --- Водій --- #}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ order_form.driver.id_for_label }}" class="form-label">
+                        {{ order_form.driver.label }}
+                    </label>
+                    {{ order_form.driver }}
+                    {% if order_form.driver.errors %}
+                        <div class="text-danger small">{{ order_form.driver.errors }}</div>
+                    {% endif %}
+                </div>
+
+                {# --- Автомобіль --- #}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ order_form.car.id_for_label }}" class="form-label">
+                        {{ order_form.car.label }}
+                    </label>
+                    {{ order_form.car }}
+                    {% if order_form.car.errors %}
+                        <div class="text-danger small">{{ order_form.car.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# --- Примітки --- #}
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label for="{{ order_form.notes.id_for_label }}" class="form-label">
+                        {{ order_form.notes.label }}
+                    </label>
+                    {{ order_form.notes }}
+                    {% if order_form.notes.errors %}
+                        <div class="text-danger small">{{ order_form.notes.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Приховані поля, які не були виведені вручну (ID, status, work_shift) #}
+            {% for hidden in order_form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">{% trans "Позиції замовлення" %}</div>
+        <div class="card-body">
+            {{ formset.management_form }}
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+            {% endif %}
+
+            <div id="item-forms-container">
+                {% for form in formset %}
+                <div class="row item-form align-items-center mb-3 border-bottom pb-3">
+                    {# Приховані поля позиції (ID, DELETE) #}
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.product.label }}</label>
+                        {{ form.product }}
+                        {% if form.product.errors %}<div class="text-danger small">{{ form.product.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">{{ form.ordered_units.label }}</label>
+                        {{ form.ordered_units }}
+                        {% if form.ordered_units.errors %}<div class="text-danger small">{{ form.ordered_units.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-2 align-self-end">
+                        {# Приховуємо чекбокс "Видалити" для відправлених замовлень #}
+                        {% if order.status != 'SHIPPED' and formset.can_delete %}
+                        <div class="form-check">
+                            {# Перевіряємо наявність DELETE, оскільки він може бути прихованим #}
+                            {% if form.DELETE %}
+                                {{ form.DELETE }}
+                                <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">{% trans "Видалити" %}</label>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {# Приховуємо кнопку "Додати позицію" для відправлених замовлень #}
+            {% if order.status != 'SHIPPED' and not order.is_deleted %}
+            <button type="button" id="add-form-btn" class="btn btn-outline-success btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> {% trans "Додати позицію" %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        {# Приховуємо кнопки "Зберегти" та "Скасувати", залишаючи "Повернутися" #}
+        {% if order.status != 'SHIPPED' and not order.is_deleted %}
+            <button type="submit" class="btn btn-primary">{% trans "Зберегти замовлення" %}</button>
+            <a href="{% url 'inventory:order_list' %}" class="btn btn-secondary">{% trans "Скасувати" %}</a>
+        {% else %}
+            <a href="{% url 'inventory:order_list' %}" class="btn btn-secondary">{% trans "Повернутися до списку" %}</a>
+        {% endif %}
+    </div>
+</form>
+
+<div id="empty-form" class="row item-form align-items-center mb-3 border-bottom pb-3 d-none">
+    <div class="col-md-6">
+        <label class="form-label">{{ formset.empty_form.product.label }}</label>
+        {{ formset.empty_form.product }}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">{{ formset.empty_form.ordered_units.label }}</label>
+        {{ formset.empty_form.ordered_units }}
+    </div>
+    <div class="col-md-2 align-self-end">
+        <button type="button" class="btn btn-danger btn-sm remove-form-btn">{% trans "Прибрати" %}</button>
+    </div>
+    {# Також не забуваємо про приховані поля у порожній формі #}
+    {% for hidden in formset.empty_form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formsContainer = document.getElementById('item-forms-container');
+    const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form');
+    const addFormBtn = document.getElementById('add-form-btn');
+
+    // Регулярний вираз для пошуку префікса форми (наприклад, items-0, items-1, id_items-0)
+    const formRegex = new RegExp('items-(\\d+)', 'g');
+
+    /**
+     * Оновлює індекси всіх полів форми (ID, NAME, FOR) після додавання або видалення.
+     * @param {HTMLElement} container - Контейнер з усіма формами.
+     */
+    function updateFormIndices(container) {
+        const forms = container.querySelectorAll('.item-form');
+
+        forms.forEach((form, index) => {
+            const replaceIndex = (element) => {
+                if (element.name) {
+                    element.name = element.name.replace(formRegex, `items-${index}`);
+                }
+                if (element.id) {
+                    element.id = element.id.replace(formRegex, `items-${index}`);
+                }
+                if (element.htmlFor) {
+                    element.htmlFor = element.htmlFor.replace(formRegex, `items-${index}`);
+                }
+            };
+
+            form.querySelectorAll('*').forEach(replaceIndex);
+
+            // Оновлюємо приховані поля ID та DELETE
+            const idInput = form.querySelector('input[id$="-id"]');
+            if (idInput) {
+                idInput.id = `id_items-${index}-id`;
+                idInput.name = `items-${index}-id`;
+            }
+
+            const deleteInput = form.querySelector('input[id$="-DELETE"]');
+            if (deleteInput) {
+                deleteInput.id = `id_items-${index}-DELETE`;
+                deleteInput.name = `items-${index}-DELETE`;
+            }
+        });
+        totalForms.value = forms.length;
+    }
+
+
+    // --- Обробник додавання форми ---
+    if (addFormBtn) {
+        addFormBtn.addEventListener('click', function() {
+            let formNum = parseInt(totalForms.value);
+
+            const newForm = emptyFormTemplate.cloneNode(true);
+            newForm.removeAttribute('id');
+            newForm.classList.remove('d-none');
+
+            const formPlaceholderRegex = new RegExp('__prefix__', 'g');
+
+            newForm.innerHTML = newForm.innerHTML.replace(formPlaceholderRegex, formNum);
+
+            formsContainer.append(newForm);
+
+            updateFormIndices(formsContainer);
+        });
+    }
+
+    // --- Обробник видалення форми ---
+    formsContainer.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-form-btn')) {
+            const formToRemove = e.target.closest('.item-form');
+            if (formToRemove) {
+                formToRemove.remove();
+                // Після видалення обов'язково перенумеровуємо форми!
+                updateFormIndices(formsContainer);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

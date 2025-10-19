@@ -1,0 +1,23 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Підтвердження видалення" %}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Підтвердження видалення" %}</h2>
+<p>{% trans "Ви впевнені, що хочете видалити замовлення" %} <strong>{{ object }}</strong>?</p>
+
+{% if object.status == 'PENDING' %}
+<div class="alert alert-warning">
+    <strong>{% trans "Увага!" %}</strong> {% trans "Оскільки це замовлення ще не було відправлено, зарезервований товар буде повернуто на склад." %}
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">{% trans "Так, видалити" %}</button>
+    <a href="{% url 'inventory:order_list' %}" class="btn btn-secondary">{% trans "Ні, повернутися" %}</a>
+</form>
+{% endblock %}
+
+

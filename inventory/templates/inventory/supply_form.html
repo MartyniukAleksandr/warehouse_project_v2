@@ -1,0 +1,91 @@
+{% extends "inventory/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<h2>{{ page_title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">{% trans "Інформація про постачальника" %}</div>
+        <div class="card-body">
+            {{ form.as_p }}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">{% trans "Позиції постачання" %}</div>
+        <div class="card-body">
+            {{ formset.management_form }}
+            <div id="item-forms-container">
+                {% for item_form in formset %}
+                <div class="row item-form align-items-center mb-2">
+                    <div class="col-md-6">{{ item_form.product }}</div>
+                    <div class="col-md-4">{{ item_form.quantity }}</div>
+                    <div class="col-md-2">
+                        {% if item_form.instance.pk and formset.can_delete %}
+                        <div class="form-check">
+                            {{ item_form.DELETE }}
+                            <label class="form-check-label" for="{{ item_form.DELETE.id_for_label }}">{% trans "Видалити" %}</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-none">{{ item_form.id }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-form-btn" class="btn btn-outline-success btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> {% trans "Додати позицію" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">{% trans "Зберегти постачання" %}</button>
+        <a href="{% url 'inventory:supply_list' %}" class="btn btn-secondary">{% trans "Скасувати" %}</a>
+    </div>
+</form>
+
+<!-- Шаблон для нової форми, прихований -->
+<div id="empty-form" class="row item-form align-items-center mb-2 d-none">
+    <div class="col-md-6">{{ formset.empty_form.product }}</div>
+    <div class="col-md-4">{{ formset.empty_form.quantity }}</div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-danger btn-sm remove-form-btn">{% trans "Видалити" %}</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addFormBtn = document.getElementById('add-form-btn');
+    const formsContainer = document.getElementById('item-forms-container');
+    const emptyFormTemplate = document.getElementById('empty-form').cloneNode(true);
+    emptyFormTemplate.classList.remove('d-none');
+    emptyFormTemplate.removeAttribute('id');
+
+    const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
+    let formNum = {{ formset.total_form_count }};
+
+    addFormBtn.addEventListener('click', function() {
+        const newForm = emptyFormTemplate.cloneNode(true);
+        const formRegex = new RegExp('__prefix__', 'g');
+
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, formNum);
+        formsContainer.append(newForm);
+        totalForms.value = parseInt(totalForms.value) + 1;
+        formNum++;
+    });
+
+    formsContainer.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-form-btn')) {
+            e.target.closest('.item-form').remove();
+            // Note: We don't decrement TOTAL_FORMS for dynamic additions that are removed before saving.
+            // Django's formset handles this.
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1072 @@
+# Polish translations for PACKAGE package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-28 18:49+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Polish <LL@li.org>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: .\inventory\admin.py:33
+msgid "Залишки на складі"
+msgstr "Stany magazynowe"
+
+#: .\inventory\admin.py:36
+msgid "Додаткова інформація"
+msgstr "Dodatkowe informacje"
+
+#: .\inventory\admin.py:40
+msgid "Рівень наповнюваності"
+msgstr "Poziom zapełnienia"
+
+#: .\inventory\admin.py:61 .\inventory\models.py:78 .\inventory\models.py:218
+msgid "Продукт"
+msgstr "Produkt"
+
+#: .\inventory\admin.py:78
+msgid "Основна інформація"
+msgstr "Podstawowe informacje"
+
+#: .\inventory\admin.py:81 .\inventory\models.py:105 .\inventory\models.py:170
+#: .\inventory\templates\inventory\archived_order_list.html:40
+#: .\inventory\templates\inventory\order_list.html:90
+#: .\inventory\templates\inventory\supply_list.html:35 .\inventory\views.py:971
+msgid "Статус"
+msgstr "Status"
+
+#: .\inventory\forms.py:23 .\inventory\models.py:116
+#: .\inventory\templates\inventory\order_list.html:35
+#: .\inventory\templates\inventory\order_list.html:72 .\inventory\views.py:971
+msgid "Дата доставки"
+msgstr "Data dostawy"
+
+#: .\inventory\forms.py:37 .\inventory\models.py:102
+#: .\inventory\templates\inventory\archived_order_list.html:37
+#: .\inventory\templates\inventory\order_list.html:87
+#: .\inventory\templates\inventory\order_list.html:195 .\inventory\views.py:971
+msgid "Замовник"
+msgstr "Klient"
+
+#: .\inventory\forms.py:38
+msgid "Примітки до замовлення"
+msgstr "Uwagi do zamówienia"
+
+#: .\inventory\forms.py:39 .\inventory\models.py:29 .\inventory\models.py:114
+msgid "Водій"
+msgstr "Kierowca"
+
+#: .\inventory\forms.py:40
+msgid "Реєстраційний номер"
+msgstr "Numer rejestracyjny"
+
+#: .\inventory\forms.py:65 .\inventory\models.py:166
+#: .\inventory\templates\inventory\supply_list.html:31
+msgid "Постачальник"
+msgstr "Dostawca"
+
+#: .\inventory\models.py:13
+msgid "Номер авто"
+msgstr "Numer pojazdu"
+
+#: .\inventory\models.py:17 .\inventory\models.py:115
+msgid "Автомобіль"
+msgstr "Pojazd"
+
+#: .\inventory\models.py:18
+msgid "Автомобілі"
+msgstr "Pojazdy"
+
+#: .\inventory\models.py:25
+msgid "Ім'я водія"
+msgstr "Imię kierowcy"
+
+#: .\inventory\models.py:30
+msgid "Водії"
+msgstr "Kierowcy"
+
+#: .\inventory\models.py:40
+msgid "Час початку"
+msgstr "Czas rozpoczęcia"
+
+#: .\inventory\models.py:41
+msgid "Час закінчення"
+msgstr "Czas zakończenia"
+
+#: .\inventory\models.py:42
+msgid "Активна"
+msgstr "Aktywna"
+
+#: .\inventory\models.py:46 .\inventory\models.py:108
+msgid "Робоча зміна"
+msgstr "Zmiana robocza"
+
+#: .\inventory\models.py:47
+msgid "Робочі зміни"
+msgstr "Zmiany robocze"
+
+#: .\inventory\models.py:52
+msgid "ще активна"
+msgstr "nadal aktywna"
+
+#: .\inventory\models.py:53
+#, python-brace-format
+msgid "Зміна від {start} до {end}"
+msgstr "Zmiana od {start} do {end}"
+
+#: .\inventory\models.py:61
+#: .\inventory\templates\inventory\product_list.html:44
+#: .\inventory\views.py:922
+msgid "Назва"
+msgstr "Nazwa"
+
+#: .\inventory\models.py:62
+#: .\inventory\templates\inventory\product_list.html:45
+#: .\inventory\views.py:922
+msgid "Фірма"
+msgstr "Firma"
+
+#: .\inventory\models.py:63
+#: .\inventory\templates\inventory\product_list.html:48
+msgid "Кількість на палеті"
+msgstr "Ilość na palecie"
+
+#: .\inventory\models.py:64
+msgid "Скільки одиниць товару міститься на одній повній палеті."
+msgstr "Ile jednostek produktu mieści się na jednej pełnej palecie."
+
+#: .\inventory\models.py:65
+#: .\inventory\templates\inventory\product_list.html:46
+#: .\inventory\views.py:922
+msgid "Загальний залишок (шт.)"
+msgstr "Całkowity zapas (szt.)"
+
+#: .\inventory\models.py:66
+msgid "Загальна кількість картонів <в штуках>"
+msgstr "Całkowita liczba kartonów <w sztukach>"
+
+#: .\inventory\models.py:67 .\inventory\models.py:112 .\inventory\models.py:234
+#: .\inventory\templates\inventory\order_list.html:89
+#: .\inventory\templates\inventory\product_list.html:49
+#: .\inventory\templates\inventory\product_movement_history.html:29
+#: .\inventory\views.py:922 .\inventory\views.py:971
+msgid "Примітки"
+msgstr "Uwagi"
+
+#: .\inventory\models.py:69
+msgid "Рівень мінімальної кількості шт."
+msgstr "Minimalny poziom zapasów (szt.)"
+
+#: .\inventory\models.py:71
+msgid "Мінімальне порогове значення наповнюваності для цього продукту <в штуках>"
+msgstr "Minimalna wartość progowa dla tego produktu <w sztukach>"
+
+#: .\inventory\models.py:72
+msgid "Рівень максимальної кількості шт."
+msgstr "Maksymalny poziom zapasów (szt.)"
+
+#: .\inventory\models.py:74
+msgid "Максимальне порогове значення наповнюваності для цього продукту <в штуках>"
+msgstr "Maksymalna wartość progowa dla tego produktu <w sztukach>"
+
+#: .\inventory\models.py:79 .\inventory\templates\inventory\base.html:24
+msgid "Продукти"
+msgstr "Produkty"
+
+#: .\inventory\models.py:91
+#: .\inventory\templates\inventory\product_list.html:47
+msgid "Повних палет"
+msgstr "Pełne palety"
+
+#: .\inventory\models.py:97 .\inventory\models.py:163
+msgid "В очікуванні"
+msgstr "Oczekujące"
+
+#: .\inventory\models.py:98
+msgid "Виїхало"
+msgstr "Wysłano"
+
+#: .\inventory\models.py:99 .\inventory\templates\inventory\order_list.html:125
+msgid "Готове/Завантажено"
+msgstr "Gotowe/Załadowane"
+
+#: .\inventory\models.py:100
+msgid "Скасовано"
+msgstr "Anulowano"
+
+#: .\inventory\models.py:103 .\inventory\models.py:168 .\inventory\views.py:971
+msgid "Дата створення"
+msgstr "Data utworzenia"
+
+#: .\inventory\models.py:111
+msgid "В архіві"
+msgstr "W archiwum"
+
+#: .\inventory\models.py:119 .\inventory\models.py:120
+#: .\inventory\models.py:141
+#: .\inventory\templates\inventory\order_list.html:194
+#: .\inventory\templates\inventory\product_movement_history.html:49
+msgid "Замовлення"
+msgstr "Zamówienie"
+
+#: .\inventory\models.py:124
+#, python-brace-format
+msgid "Замовлення №{id} для {customer}"
+msgstr "Zamówienie nr {id} dla {customer}"
+
+#: .\inventory\models.py:132
+#: .\inventory\templates\inventory\archived_order_list.html:39
+#: .\inventory\templates\inventory\supply_list.html:33
+msgid "Всього (шт.)"
+msgstr "Razem (szt.)"
+
+#: .\inventory\models.py:142 .\inventory\models.py:194
+msgid "Товар"
+msgstr "Produkt"
+
+#: .\inventory\models.py:143
+msgid "Замовлено (шт.)"
+msgstr "Zamówiono (szt.)"
+
+#: .\inventory\models.py:147
+msgid "Позиція замовлення"
+msgstr "Pozycja zamówienia"
+
+#: .\inventory\models.py:148
+#: .\inventory\templates\inventory\order_form.html:101
+msgid "Позиції замовлення"
+msgstr "Pozycje zamówienia"
+
+#: .\inventory\models.py:152 .\inventory\models.py:204
+#, python-brace-format
+msgid "{units} шт. товару '{product}'"
+msgstr "{units} szt. produktu '{product}'"
+
+#: .\inventory\models.py:164
+msgid "Завершено"
+msgstr "Zakończono"
+
+#: .\inventory\models.py:167
+msgid "Назва компанії або особи, що доставила товар"
+msgstr "Nazwa firmy lub osoby, która dostarczyła towar"
+
+#: .\inventory\models.py:175 .\inventory\models.py:176
+#: .\inventory\models.py:193 .\inventory\templates\inventory\base.html:25
+#: .\inventory\templates\inventory\product_movement_history.html:51
+msgid "Постачання"
+msgstr "Dostawa"
+
+#: .\inventory\models.py:180
+#, python-brace-format
+msgid "Постачання №{id} від {supplier}"
+msgstr "Dostawa nr {id} od {supplier}"
+
+#: .\inventory\models.py:195
+msgid "Кількість (шт.)"
+msgstr "Ilość (szt.)"
+
+#: .\inventory\models.py:199
+msgid "Позиція постачання"
+msgstr "Pozycja dostawy"
+
+#: .\inventory\models.py:200
+#: .\inventory\templates\inventory\supply_form.html:18
+msgid "Позиції постачання"
+msgstr "Pozycje dostawy"
+
+#: .\inventory\models.py:213
+msgid "Надходження від постачання"
+msgstr "Przyjęcie z dostawy"
+
+#: .\inventory\models.py:214
+msgid "Резервування під замовлення"
+msgstr "Rezerwacja pod zamówienie"
+
+#: .\inventory\models.py:215
+msgid "Повернення (скасування/редагування)"
+msgstr "Zwrot (anulowanie/edycja)"
+
+#: .\inventory\models.py:216
+msgid "Ручне коригування"
+msgstr "Korekta ręczna"
+
+#: .\inventory\models.py:219
+msgid "Зміна кількості"
+msgstr "Zmiana ilości"
+
+#: .\inventory\models.py:220
+msgid "Новий залишок (шт.)"
+msgstr "Nowy zapas (szt.)"
+
+#: .\inventory\models.py:221
+#: .\inventory\templates\inventory\product_movement_history.html:25
+msgid "Тип транзакції"
+msgstr "Typ transakcji"
+
+#: .\inventory\models.py:222
+msgid "Час транзакції"
+msgstr "Czas transakcji"
+
+#: .\inventory\models.py:225 .\inventory\templates\inventory\base.html:53
+#: .\inventory\templates\inventory\product_movement_history.html:24
+msgid "Користувач"
+msgstr "Użytkownik"
+
+#: .\inventory\models.py:230
+msgid "Пов'язане замовлення"
+msgstr "Powiązane zamówienie"
+
+#: .\inventory\models.py:232
+msgid "Пов'язане постачання"
+msgstr "Powiązana dostawa"
+
+#: .\inventory\models.py:238 .\inventory\models.py:239
+msgid "Рух по складу"
+msgstr "Ruch magazynowy"
+
+#: .\inventory\models.py:243
+#, python-brace-format
+msgid "Рух товару {product} на {quantity}"
+msgstr "Ruch towaru {product} o {quantity}"
+
+#: .\inventory\templates\inventory\archived_order_list.html:4
+#: .\inventory\templates\inventory\archived_order_list.html:8
+msgid "Архів Замовлень"
+msgstr "Archiwum Zamówień"
+
+#: .\inventory\templates\inventory\archived_order_list.html:13
+msgid "Пошук за замовником або товаром..."
+msgstr "Szukaj według klienta lub produktu..."
+
+#: .\inventory\templates\inventory\archived_order_list.html:14
+#: .\inventory\templates\inventory\archived_order_list.html:22
+#: .\inventory\templates\inventory\product_list.html:18
+#: .\inventory\templates\inventory\supply_list.html:16
+msgid "Пошук"
+msgstr "Szukaj"
+
+#: .\inventory\templates\inventory\archived_order_list.html:15
+#: .\inventory\templates\inventory\archived_order_list.html:23
+#: .\inventory\templates\inventory\order_list.html:52
+#: .\inventory\templates\inventory\product_list.html:19
+#: .\inventory\templates\inventory\supply_list.html:17
+msgid "Очистити"
+msgstr "Wyczyść"
+
+#: .\inventory\templates\inventory\archived_order_list.html:21
+msgid "Пошук в архіві..."
+msgstr "Szukaj w archiwum..."
+
+#: .\inventory\templates\inventory\archived_order_list.html:28
+msgid "Архів порожній."
+msgstr "Archiwum jest puste."
+
+#: .\inventory\templates\inventory\archived_order_list.html:36
+#: .\inventory\templates\inventory\order_list.html:86
+#: .\inventory\templates\inventory\supply_list.html:30 .\inventory\views.py:922
+#: .\inventory\views.py:971
+msgid "№"
+msgstr "Lp."
+
+#: .\inventory\templates\inventory\archived_order_list.html:38
+#: .\inventory\templates\inventory\order_list.html:88
+#: .\inventory\templates\inventory\supply_list.html:32 .\inventory\views.py:971
+msgid "Позиції"
+msgstr "Pozycje"
+
+#: .\inventory\templates\inventory\archived_order_list.html:41
+msgid "Зміна"
+msgstr "Zmiana"
+
+#: .\inventory\templates\inventory\archived_order_list.html:53
+#: .\inventory\templates\inventory\order_list.html:105
+#: .\inventory\templates\inventory\supply_list.html:47 .\inventory\views.py:979
+msgid "шт."
+msgstr "szt."
+
+#: .\inventory\templates\inventory\archived_order_list.html:55
+#: .\inventory\templates\inventory\order_list.html:107
+#: .\inventory\templates\inventory\supply_list.html:49 .\inventory\views.py:982
+msgid "Немає позицій"
+msgstr "Brak pozycji"
+
+#: .\inventory\templates\inventory\archived_order_list.html:85
+#: .\inventory\templates\inventory\order_list.html:174
+#: .\inventory\templates\inventory\product_list.html:99
+#: .\inventory\templates\inventory\product_movement_history.html:77
+#: .\inventory\templates\inventory\supply_list.html:96
+msgid "Сторінка"
+msgstr "Strona"
+
+#: .\inventory\templates\inventory\archived_order_list.html:85
+#: .\inventory\templates\inventory\order_list.html:174
+#: .\inventory\templates\inventory\product_list.html:99
+#: .\inventory\templates\inventory\supply_list.html:96
+msgid "з"
+msgstr "z"
+
+#: .\inventory\templates\inventory\base.html:8
+msgid "Складський облік"
+msgstr "Zarządzanie magazynem"
+
+#: .\inventory\templates\inventory\base.html:16
+msgid "Склад"
+msgstr "Magazyn"
+
+#: .\inventory\templates\inventory\base.html:26
+#: .\inventory\templates\inventory\order_list.html:4
+#: .\inventory\templates\inventory\order_list.html:8
+msgid "Активні Замовлення"
+msgstr "Aktywne Zamówienia"
+
+#: .\inventory\templates\inventory\base.html:27
+msgid "Архів"
+msgstr "Archiwum"
+
+#: .\inventory\templates\inventory\base.html:28
+#: .\inventory\templates\inventory\order_report.html:4 .\inventory\views.py:117
+msgid "Статистика замовлень"
+msgstr "Statystyki zamówień"
+
+#: .\inventory\templates\inventory\base.html:38
+msgid "Ви впевнені, що хочете закрити зміну? "
+msgstr "Czy na pewno chcesz zamknąć zmianę? "
+
+#: .\inventory\templates\inventory\base.html:39
+msgid "Закрити зміну"
+msgstr "Zamknij zmianę"
+
+#: .\inventory\templates\inventory\base.html:46
+msgid "Відкрити зміну"
+msgstr "Otwórz zmianę"
+
+#: .\inventory\templates\inventory\base.html:57
+msgid "Вийти"
+msgstr "Wyloguj"
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:4
+#: .\inventory\templates\inventory\order_confirm_delete.html:7
+msgid "Підтвердження видалення"
+msgstr "Potwierdzenie usunięcia"
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:8
+msgid "Ви впевнені, що хочете видалити замовлення"
+msgstr "Czy na pewno chcesz usunąć zamówienie"
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:12
+msgid "Увага!"
+msgstr "Uwaga!"
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:12
+msgid "Оскільки це замовлення ще не було відправлено, зарезервований товар буде повернуто на склад."
+msgstr "Ponieważ to zamówienie nie zostało jeszcze wysłane, zarezerwowany towar zostanie zwrócony do magazynu."
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:18
+msgid "Так, видалити"
+msgstr "Tak, usuń"
+
+#: .\inventory\templates\inventory\order_confirm_delete.html:19
+msgid "Ні, повернутися"
+msgstr "Nie, wróć"
+
+#: .\inventory\templates\inventory\order_form.html:21
+msgid "Це замовлення доступне тільки для перегляду."
+msgstr "To zamówienie jest dostępne tylko do wglądu."
+
+#: .\inventory\templates\inventory\order_form.html:28
+msgid "Інформація про замовлення"
+msgstr "Informacje o zamówieniu"
+
+#: .\inventory\templates\inventory\order_form.html:131
+#: .\inventory\templates\inventory\supply_form.html:30
+#: .\inventory\templates\inventory\supply_form.html:55
+#: .\inventory\templates\inventory\supply_list.html:76
+msgid "Видалити"
+msgstr "Usuń"
+
+#: .\inventory\templates\inventory\order_form.html:142
+#: .\inventory\templates\inventory\supply_form.html:39
+msgid "Додати позицію"
+msgstr "Dodaj pozycję"
+
+#: .\inventory\templates\inventory\order_form.html:151
+msgid "Зберегти замовлення"
+msgstr "Zapisz zamówienie"
+
+#: .\inventory\templates\inventory\order_form.html:152
+#: .\inventory\templates\inventory\product_form.html:14
+#: .\inventory\templates\inventory\supply_form.html:46
+msgid "Скасувати"
+msgstr "Anuluj"
+
+#: .\inventory\templates\inventory\order_form.html:154
+msgid "Повернутися до списку"
+msgstr "Wróć do listy"
+
+#: .\inventory\templates\inventory\order_form.html:169
+msgid "Прибрати"
+msgstr "Usuń"
+
+#: .\inventory\templates\inventory\order_list.html:11
+#: .\inventory\templates\inventory\product_list.html:10
+msgid "Експорт в PDF"
+msgstr "Eksport do PDF"
+
+#: .\inventory\templates\inventory\order_list.html:13 .\inventory\views.py:426
+#: .\inventory\views.py:443 .\inventory\views.py:520 .\inventory\views.py:531
+msgid "Створити замовлення"
+msgstr "Utwórz zamówienie"
+
+#: .\inventory\templates\inventory\order_list.html:24
+msgid "Пошук (Замовник/Товар)"
+msgstr "Szukaj (Klient/Produkt)"
+
+#: .\inventory\templates\inventory\order_list.html:29
+msgid "Пошук..."
+msgstr "Szukaj..."
+
+#: .\inventory\templates\inventory\order_list.html:46
+#: .\inventory\templates\inventory\order_report.html:30
+msgid "Фільтрувати"
+msgstr "Filtruj"
+
+#: .\inventory\templates\inventory\order_list.html:63
+#: .\inventory\templates\inventory\order_list.html:160
+msgid "Активних замовлень не знайдено."
+msgstr "Nie znaleziono aktywnych zamówień."
+
+#: .\inventory\templates\inventory\order_list.html:75
+msgid "Сьогодні"
+msgstr "Dzisiaj"
+
+#: .\inventory\templates\inventory\order_list.html:91
+#: .\inventory\templates\inventory\product_list.html:50
+#: .\inventory\templates\inventory\supply_list.html:36
+msgid "Дії"
+msgstr "Akcje"
+
+#: .\inventory\templates\inventory\order_list.html:126
+#: .\inventory\templates\inventory\product_list.html:66
+msgid "Редагувати"
+msgstr "Edytuj"
+
+#: .\inventory\templates\inventory\order_list.html:127
+msgid "Скасувати замовлення"
+msgstr "Anuluj zamówienie"
+
+#: .\inventory\templates\inventory\order_list.html:127
+msgid "Ви впевнені, що хочете скасувати це замовлення? Товар буде повернуто на склад."
+msgstr "Czy na pewno chcesz anulować to zamówienie? Towar zostanie zwrócony do magazynu."
+
+#: .\inventory\templates\inventory\order_list.html:137
+msgid "Відправити"
+msgstr "Wyślij"
+
+#: .\inventory\templates\inventory\order_list.html:140
+msgid "Відхилити завантаження"
+msgstr "Odrzuć załadunek"
+
+#: .\inventory\templates\inventory\order_list.html:142
+msgid "Видалити назавжди"
+msgstr "Usuń na zawsze"
+
+#: .\inventory\templates\inventory\order_list.html:142
+msgid "Ви впевнені, що хочете остаточно видалити це скасоване замовлення? Цю дію неможливо буде скасувати."
+msgstr "Czy na pewno chcesz trwale usunąć to anulowane zamówienie? Tej akcji nie można cofnąć."
+
+#: .\inventory\templates\inventory\order_list.html:144
+msgid "Переглянути"
+msgstr "Zobacz"
+
+#: .\inventory\templates\inventory\order_list.html:145
+msgid "Перемістити до архіву"
+msgstr "Przenieś do archiwum"
+
+#: .\inventory\templates\inventory\order_list.html:145
+msgid "Ви впевнені, що хочете заархівувати це замовлення?"
+msgstr "Czy na pewno chcesz zarchiwizować to zamówienie?"
+
+#: .\inventory\templates\inventory\order_list.html:188
+msgid "Інформація про водія для відправки"
+msgstr "Informacje o kierowcy do wysyłki"
+
+#: .\inventory\templates\inventory\order_list.html:210
+msgid "Закрити"
+msgstr "Zamknij"
+
+#: .\inventory\templates\inventory\order_list.html:211
+msgid "Зберегти та відправити"
+msgstr "Zapisz i wyślij"
+
+#: .\inventory\templates\inventory\order_report.html:9
+msgid "Статистика замовлень картону"
+msgstr "Statystyki zamówień kartonów"
+
+#: .\inventory\templates\inventory\order_report.html:14
+msgid "Від:"
+msgstr "Od:"
+
+#: .\inventory\templates\inventory\order_report.html:17
+msgid "До:"
+msgstr "Do:"
+
+#: .\inventory\templates\inventory\order_report.html:22
+msgid "Групувати за:"
+msgstr "Grupuj według:"
+
+#: .\inventory\templates\inventory\order_report.html:24
+msgid "Днем"
+msgstr "Dnia"
+
+#: .\inventory\templates\inventory\order_report.html:25
+msgid "Місяцем"
+msgstr "Miesiąca"
+
+#: .\inventory\templates\inventory\order_report.html:26
+msgid "Роком"
+msgstr "Roku"
+
+#: .\inventory\templates\inventory\order_report.html:42
+#: .\inventory\templates\inventory\supply_list.html:34
+msgid "Дата"
+msgstr "Data"
+
+#: .\inventory\templates\inventory\order_report.html:42
+msgid "Місяць"
+msgstr "Miesiąc"
+
+#: .\inventory\templates\inventory\order_report.html:42
+msgid "Рік"
+msgstr "Rok"
+
+#: .\inventory\templates\inventory\order_report.html:44
+msgid "Тип картону"
+msgstr "Typ kartonu"
+
+#: .\inventory\templates\inventory\order_report.html:45
+msgid "Кількість"
+msgstr "Ilość"
+
+#: .\inventory\templates\inventory\order_report.html:68
+msgid "Немає даних за вибраний період."
+msgstr "Brak danych dla wybranego okresu."
+
+#: .\inventory\templates\inventory\product_form.html:13
+msgid "Зберегти"
+msgstr "Zapisz"
+
+#: .\inventory\templates\inventory\product_list.html:4
+msgid "Список Продуктів"
+msgstr "Lista Produktów"
+
+#: .\inventory\templates\inventory\product_list.html:8
+msgid "Продукти на складі"
+msgstr "Produkty w magazynie"
+
+#: .\inventory\templates\inventory\product_list.html:11
+msgid "Додати продукт"
+msgstr "Dodaj produkt"
+
+#: .\inventory\templates\inventory\product_list.html:17
+msgid "Пошук за назвою або фірмою..."
+msgstr "Szukaj według nazwy lub firmy..."
+
+#: .\inventory\templates\inventory\product_list.html:26
+msgid "В нормі"
+msgstr "W normie"
+
+#: .\inventory\templates\inventory\product_list.html:27
+msgid "Середній рівень"
+msgstr "Średni poziom"
+
+#: .\inventory\templates\inventory\product_list.html:28
+msgid "Низький рівень"
+msgstr "Niski poziom"
+
+#: .\inventory\templates\inventory\product_list.html:33
+msgid "Продуктів не знайдено."
+msgstr "Nie znaleziono produktów."
+
+#: .\inventory\templates\inventory\product_list.html:70
+msgid "Історія руху"
+msgstr "Historia ruchu"
+
+#: .\inventory\templates\inventory\product_list.html:80
+msgid "Всього одиниць на складі (загалом):"
+msgstr "Całkowita liczba jednostek w magazynie:"
+
+#: .\inventory\templates\inventory\product_list.html:88
+msgid "Ви впевнені, що хочете видалити обрані продукти?"
+msgstr "Czy na pewno chcesz usunąć wybrane produkty?"
+
+#: .\inventory\templates\inventory\product_list.html:89
+msgid "Видалити обрані"
+msgstr "Usuń wybrane"
+
+#: .\inventory\templates\inventory\product_movement_history.html:4
+#: .\inventory\templates\inventory\product_movement_history.html:10
+msgid "Історія руху товару"
+msgstr "Historia ruchu towaru"
+
+#: .\inventory\templates\inventory\product_movement_history.html:13
+msgid "До списку продуктів"
+msgstr "Do listy produktów"
+
+#: .\inventory\templates\inventory\product_movement_history.html:23
+msgid "Час"
+msgstr "Czas"
+
+#: .\inventory\templates\inventory\product_movement_history.html:26
+msgid "Зміна (шт.)"
+msgstr "Zmiana (szt.)"
+
+#: .\inventory\templates\inventory\product_movement_history.html:27
+msgid "Новий залишок"
+msgstr "Nowy zapas"
+
+#: .\inventory\templates\inventory\product_movement_history.html:28
+msgid "Пов'язаний документ"
+msgstr "Powiązany dokument"
+
+#: .\inventory\templates\inventory\product_movement_history.html:60
+msgid "Історія руху для цього товару відсутня."
+msgstr "Brak historii ruchu dla tego towaru."
+
+#: .\inventory\templates\inventory\supply_form.html:11
+msgid "Інформація про постачальника"
+msgstr "Informacje o dostawcy"
+
+#: .\inventory\templates\inventory\supply_form.html:45
+msgid "Зберегти постачання"
+msgstr "Zapisz dostawę"
+
+#: .\inventory\templates\inventory\supply_list.html:4
+msgid "Список Постачань"
+msgstr "Lista Dostaw"
+
+#: .\inventory\templates\inventory\supply_list.html:8
+msgid "Постачання на склад"
+msgstr "Dostawy do magazynu"
+
+#: .\inventory\templates\inventory\supply_list.html:10 .\inventory\views.py:853
+msgid "Створити постачання"
+msgstr "Utwórz dostawę"
+
+#: .\inventory\templates\inventory\supply_list.html:15
+msgid "Пошук по постачальнику або товару..."
+msgstr "Szukaj według dostawcy lub produktu..."
+
+#: .\inventory\templates\inventory\supply_list.html:22
+msgid "Ще немає жодного постачання."
+msgstr "Nie ma jeszcze żadnych dostaw."
+
+#: .\inventory\templates\inventory\supply_list.html:68
+msgid "Ви впевнені, що хочете прийняти це постачання? Залишки на складі будуть оновлені."
+msgstr "Czy na pewno chcesz przyjąć tę dostawę? Stany magazynowe zostaną zaktualizowane."
+
+#: .\inventory\templates\inventory\supply_list.html:69
+msgid "Прийняти на склад"
+msgstr "Przyjmij do magazynu"
+
+#: .\inventory\templates\inventory\supply_list.html:75
+msgid "Ви впевнені, що хочете видалити це постачання? Це дія незворотна."
+msgstr "Czy na pewno chcesz usunąć tę dostawę? Ta akcja jest nieodwracalna."
+
+#: .\inventory\views.py:113
+msgid "Щоденна статистика"
+msgstr "Statystyki dzienne"
+
+#: .\inventory\views.py:114
+msgid "Щомісячна статистика"
+msgstr "Statystyki miesięczne"
+
+#: .\inventory\views.py:115
+msgid "Щорічна статистика"
+msgstr "Statystyki roczne"
+
+#: .\inventory\views.py:164
+msgid "Неможливо почати нову зміну, поки активна попередня."
+msgstr "Nie można rozpocząć nowej zmiany, gdy poprzednia jest aktywna."
+
+#: .\inventory\views.py:167
+msgid "Нову робочу зміну розпочато."
+msgstr "Rozpoczęto nową zmianę roboczą."
+
+#: .\inventory\views.py:181
+msgid " Робочу зміну успішно закрито"
+msgstr " Zmianę roboczą pomyślnie zamknięto"
+
+#: .\inventory\views.py:183
+msgid "Не знайдено активної зміни для закриття."
+msgstr "Nie znaleziono aktywnej zmiany do zamknięcia."
+
+#: .\inventory\views.py:231
+msgid "Додати новий продукт"
+msgstr "Dodaj nowy produkt"
+
+#: .\inventory\views.py:243
+msgid "Редагувати продукт"
+msgstr "Edytuj produkt"
+
+#: .\inventory\views.py:255
+msgid "Ви не обрали жодного продукту для видалення."
+msgstr "Nie wybrano żadnego produktu do usunięcia."
+
+#: .\inventory\views.py:264
+#, python-brace-format
+msgid "Неможливо видалити продукти: {products}, оскільки вони є в існуючих замовленнях."
+msgstr "Nie można usunąć produktów: {products}, ponieważ znajdują się w istniejących zamówieniach."
+
+#: .\inventory\views.py:273
+#, python-brace-format
+msgid "Успішно видалено {count} продукт(ів)."
+msgstr "Pomyślnie usunięto {count} produkt(ów)."
+
+#: .\inventory\views.py:422 .\inventory\views.py:569
+msgid "У замовленні не може бути однакових позицій. Будь ласка, об'єднайте їх."
+msgstr "Zamówienie nie może zawierać tych samych pozycji. Proszę je połączyć."
+
+#: .\inventory\views.py:439
+msgid "Неможливо створити замовлення з датою доставки сьогодні або раніше. Спочатку відкрийте робочу зміну."
+msgstr "Nie można utworzyć zamówienia z datą dostawy na dzisiaj lub wcześniejszą. Najpierw otwórz zmianę roboczą."
+
+#: .\inventory\views.py:458
+#, python-brace-format
+msgid "Недостатньо товару '{product}' на складі для резервування."
+msgstr "Niewystarczająca ilość produktu '{product}' w magazynie do rezerwacji."
+
+#: .\inventory\views.py:490
+#, python-format
+msgid "Прийняте замовлення (виконано одразу, датою - %(date)s) для клієнта: %(customer)s"
+msgstr "Przyjęte zamówienie (zrealizowano natychmiast, data - %(date)s) dla klienta: %(customer)s"
+
+#: .\inventory\views.py:494
+#, python-format
+msgid "Резервування замовлення (доставка %(date)s) для клієнта: %(customer)s"
+msgstr "Rezerwacja zamówienia (dostawa %(date)s) dla klienta: %(customer)s"
+
+#: .\inventory\views.py:507
+#, python-brace-format
+msgid "Товар успішно зарезервовано для доставки {date}."
+msgstr "Towar pomyślnie zarezerwowano do dostawy {date}."
+
+#: .\inventory\views.py:510
+msgid "Товар списано зі складу, замовлення оформлено до виконання."
+msgstr "Towar został pobrany z magazynu, zamówienie przekazano do realizacji."
+
+#: .\inventory\views.py:512
+#, python-format
+msgid "Замовлення успішно створено. %s"
+msgstr "Zamówienie pomyślnie utworzono. %s"
+
+#: .\inventory\views.py:543
+msgid "Це замовлення знаходиться в архіві і не може бути відредаговане."
+msgstr "To zamówienie znajduje się w archiwum i nie może być edytowane."
+
+#: .\inventory\views.py:547
+msgid "Неможливо редагувати замовлення, яке вже було відправлено."
+msgstr "Nie można edytować zamówienia, które zostało już wysłane."
+
+#: .\inventory\views.py:556
+msgid "Інформацію про водія оновлено."
+msgstr "Informacje o kierowcy zostały zaktualizowane."
+
+#: .\inventory\views.py:574 .\inventory\views.py:641
+msgid "Перегляд/Редагувати замовлення"
+msgstr "Podgląd/Edytuj zamówienie"
+
+#: .\inventory\views.py:593
+#, python-brace-format
+msgid "Недостатньо товару '{product}' для збільшення замовлення."
+msgstr "Niewystarczająca ilość produktu '{product}', aby zwiększyć zamówienie."
+
+#: .\inventory\views.py:603
+#, python-format
+msgid "Редагування замовлення для клієнта: %(customer)s"
+msgstr "Edycja zamówienia dla klienta: %(customer)s"
+
+#: .\inventory\views.py:612
+msgid "Замовлення успішно оновлено."
+msgstr "Zamówienie pomyślnie zaktualizowano."
+
+#: .\inventory\views.py:656
+msgid "Це замовлення вже в архіві."
+msgstr "To zamówienie jest już w archiwum."
+
+#: .\inventory\views.py:667
+#, python-format
+msgid "Архівування замовлення для клієнта: %(customer)s"
+msgstr "Archiwizacja zamówienia dla klienta: %(customer)s"
+
+#: .\inventory\views.py:672
+#, python-brace-format
+msgid "Товар із замовлення №{id} повернуто на склад."
+msgstr "Towar z zamówienia nr {id} został zwrócony do magazynu."
+
+#: .\inventory\views.py:676
+#, python-brace-format
+msgid "Замовлення №{id} переміщено до архіву."
+msgstr "Zamówienie nr {id} przeniesiono do archiwum."
+
+#: .\inventory\views.py:678
+msgid "Сталася помилка при архівуванні замовлення: {}"
+msgstr "Wystąpił błąd podczas archiwizacji zamówienia: {}"
+
+#: .\inventory\views.py:692
+#, python-brace-format
+msgid "Неможливо скасувати замовлення зі статусом '{status}'."
+msgstr "Nie można anulować zamówienia o statusie '{status}'."
+
+#: .\inventory\views.py:704
+#, python-format
+msgid "Скасування замовлення для клієнта: %(customer)s"
+msgstr "Anulowanie zamówienia dla klienta: %(customer)s"
+
+#: .\inventory\views.py:713
+#, python-brace-format
+msgid "Замовлення №{id} скасовано. Товар повернуто на склад."
+msgstr "Zamówienie nr {id} zostało anulowane. Towar zwrócono do magazynu."
+
+#: .\inventory\views.py:715
+msgid "Сталася помилка при скасуванні замовлення: {}"
+msgstr "Wystąpił błąd podczas anulowania zamówienia: {}"
+
+#: .\inventory\views.py:729
+msgid "Можна видаляти назавжди лише скасовані замовлення."
+msgstr "Można trwale usuwać tylko anulowane zamówienia."
+
+#: .\inventory\views.py:736
+#, python-brace-format
+msgid "Скасоване замовлення №{id} було остаточно видалено."
+msgstr "Anulowane zamówienie nr {id} zostało trwale usunięte."
+
+#: .\inventory\views.py:738
+msgid "Сталася помилка під час остаточного видалення замовлення: {}"
+msgstr "Wystąpił błąd podczas trwałego usuwania zamówienia: {}"
+
+#: .\inventory\views.py:752
+#, python-brace-format
+msgid "Статус замовлення №{id} змінено на 'Готове/Завантажено'."
+msgstr "Status zamówienia nr {id} zmieniono na 'Gotowe/Załadowane'."
+
+#: .\inventory\views.py:754
+msgid "Змінити статус на 'Готове/Завантажено' можна лише для замовлень в очікуванні."
+msgstr "Można zmienić status na 'Gotowe/Załadowane' tylko dla zamówień oczekujących."
+
+#: .\inventory\views.py:767
+#, python-brace-format
+msgid "Статус замовлення №{id} повернуто до 'В очікуванні'."
+msgstr "Status zamówienia nr {id} przywrócono na 'Oczekujące'."
+
+#: .\inventory\views.py:769
+msgid "Відхилити завантаження можна лише для замовлень зі статусом 'Готове/Завантажено'."
+msgstr "Można odrzucić załadunek tylko dla zamówień o statusie 'Gotowe/Załadowane'."
+
+#: .\inventory\views.py:785
+msgid "Неможливо відправити замовлення, яке не має статусу 'Готове/Завантажено'."
+msgstr "Nie można wysłać zamówienia, które nie ma statusu 'Gotowe/Załadowane'."
+
+#: .\inventory\views.py:794
+#, python-brace-format
+msgid "Замовлення №{id} відправлено. Інформацію про водія додано."
+msgstr "Zamówienie nr {id} zostało wysłane. Dodano informacje o kierowcy."
+
+#: .\inventory\views.py:797
+#, python-brace-format
+msgid "Помилка валідації: {errors}"
+msgstr "Błąd walidacji: {errors}"
+
+#: .\inventory\views.py:844
+msgid "Нове постачання успішно створено."
+msgstr "Nowa dostawa została pomyślnie utworzona."
+
+#: .\inventory\views.py:864
+msgid "Це постачання вже було оброблено."
+msgstr "Ta dostawa została już przetworzona."
+
+#: .\inventory\views.py:874
+#, python-format
+msgid "Постачання від постачальника: %(supplier)s"
+msgstr "Dostawa od dostawcy: %(supplier)s"
+
+#: .\inventory\views.py:881
+#, python-brace-format
+msgid "Постачання №{id} прийнято. Залишки на складі оновлено."
+msgstr "Dostawa nr {id} została przyjęta. Stany magazynowe zaktualizowano."
+
+#: .\inventory\views.py:883
+msgid "Сталася помилка при обробці постачання: {}"
+msgstr "Wystąpił błąd podczas przetwarzania dostawy: {}"
+
+#: .\inventory\views.py:896
+msgid "Можна видаляти лише постачання зі статусом 'В очікуванні'. Оброблений товар потрібно повертати іншим методом."
+msgstr "Można usuwać tylko dostawy o statusie 'Oczekujące'. Przetworzony towar należy zwracać inną metodą."
+
+#: .\inventory\views.py:902
+#, python-brace-format
+msgid "Постачання {id} успішно видалено."
+msgstr "Dostawa {id} została pomyślnie usunięta."
+
+#: .\inventory\views.py:904
+msgid "Сталася помилка під час видалення постачання: {}"
+msgstr "Wystąpił błąd podczas usuwania dostawy: {}"
+
+#: .\inventory\views.py:920
+msgid "Звіт по продуктах на складі"
+msgstr "Raport o produktach w magazynie"
+
+#: .\inventory\views.py:959
+#, python-format
+msgid "Звіт по замовленнях на дату доставки: %(date)s"
+msgstr "Raport zamówień na datę dostawy: %(date)s"
+
+#: .\inventory\views.py:962 .\inventory\views.py:964
+msgid "Звіт по активних замовленнях"
+msgstr "Raport aktywnych zamówień"
+
+#: .\inventory\views.py:991
+msgid "Не вказано"
+msgstr "Nie określono"
+
+#: .\templates\registration\login.html:4
+msgid "Вхід"
+msgstr "Logowanie"
+
+#: .\templates\registration\login.html:11
+msgid "Вхід в систему"
+msgstr "Logowanie do systemu"
+
+#: .\templates\registration\login.html:15
+msgid "Ваше ім'я користувача та пароль не збіглися. Будь ласка, спробуйте ще раз."
+msgstr "Nazwa użytkownika i hasło nie pasują. Proszę spróbować ponownie."
+
+#: .\templates\registration\login.html:22
+msgid "Ім'я користувача"
+msgstr "Nazwa użytkownika"
+
+#: .\templates\registration\login.html:26
+msgid "Пароль"
+msgstr "Hasło"
+
+#: .\templates\registration\login.html:30
+msgid "Увійти"
+msgstr "Zaloguj się"
+
+#: .\warehouse_project_v2\settings.py:83
+msgid "Українська"
+msgstr "Ukraiński"
+
+#: .\warehouse_project_v2\settings.py:84
+msgid "Польська"
+msgstr "Polski"
