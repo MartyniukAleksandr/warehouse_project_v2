@@ -1,5 +1,24 @@
-__pycache__/
-*.pyc
-venv/
+# Секрети та налаштування (НАЙВАЖЛИВІШЕ)
 .env
+
+# База даних (локальна)
 db.sqlite3
+
+# Тимчасові файли Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Віртуальне середовище
+venv/
+env/
+.venv/
+
+# Статика та медіа (вони зберуться самі в Docker)
+staticfiles/
+media/
+
+# Налаштування редакторів
+.vscode/
+.idea/
+.DS_Store

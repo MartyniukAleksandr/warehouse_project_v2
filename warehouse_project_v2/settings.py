@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 # Додаємо імпорт для перекладу
 from django.utils.translation import gettext_lazy as _
 
@@ -12,12 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-secret_key = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -69,16 +70,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'warehouse_project_v2.wsgi.application'
 
 
-# Database
+# --- Налаштування бази даних ---
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600, # Опціонально: тримає з'єднання відкритим (прискорює роботу)
+        conn_health_checks=True,
+    )
 }
+#--- Кінець налаштувань бази даних ---
 
+#------- Налаштування I18N ---
 
 LANGUAGES = [
     ('uk', _('Українська')),
@@ -93,8 +102,16 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 
 # --- Кінець налаштувань I18N ---
 
-STATIC_URL = 'static/'
+#--- Налаштування статичних файлів та медіа ---
+STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Окрема папка для зібраної статики
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []# Тут лежать твої стилі під час розробки
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+#--- Кінець налаштувань статичних файлів та медіа ---
 
 # --- Налаштування аутентифікації ---
 LOGIN_URL = 'login'
