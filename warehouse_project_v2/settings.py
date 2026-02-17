@@ -118,4 +118,17 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inventory:product_list'
 LOGOUT_REDIRECT_URL = 'login'
 
+# --- Налаштування безпеки для Tailscale Funnel / HTTPS ---
 
+# Читаємо список довірених доменів і перетворюємо рядок з .env у список Python
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+# Видаляємо порожні елементи, якщо вони є
+CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if origin]
+
+# Налаштування роботи через проксі-сервер
+USE_X_FORWARDED_HOST = os.getenv('USE_X_FORWARDED_HOST', 'False') == 'True'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Безпека кукі (тільки для HTTPS)
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'
