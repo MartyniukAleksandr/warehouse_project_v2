@@ -8,7 +8,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # На Synology краще вказувати шлях до конкретної папки на NAS для бекапів
+      - ./postgres_data:/var/lib/postgresql/data
+      # - postgres_data:/var/lib/postgresql/data
 
   web:
     build: .
@@ -25,9 +27,13 @@ services:
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     volumes:
+      # На Synology краще вказувати шлях до конкретної папки на NAS для бекапів
       - .:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+      # - .:/app
+      # - static_volume:/app/staticfiles
+      # - media_volume:/app/media
     depends_on:
       - db
 
@@ -35,11 +41,17 @@ services:
     image: nginx:alpine
     restart: always
     ports:
-      - "80:80"
+      # КРИТИЧНО: порт 80 на Synology зайнятий системним Nginx
+      - "8080:80"
+      # - "80:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d:ro
-      - static_volume:/app/staticfiles:ro
-      - media_volume:/app/media:ro
+      - ./staticfiles:/app/staticfiles:ro
+      - ./media:/app/media:ro
+      # На Synology краще вказувати шлях до конкретної папки
+      # - ./nginx:/etc/nginx/conf.d:ro
+      # - static_volume:/app/staticfiles:ro
+      # - media_volume:/app/media:ro
     depends_on:
       - web
 
