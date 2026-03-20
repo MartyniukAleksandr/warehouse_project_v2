@@ -362,6 +362,12 @@ class OrderListView(LoginRequiredMixin, ListView):
         # але в шаблоні ми ітеруємо по 'grouped_orders'.
 
         return context
+    
+    def get_template_names(self):
+        """Повертає різні шаблони для звичайного та HTMX-запиту."""
+        if self.request.headers.get('HX-Request'):
+            return ['inventory/partials/order_list_table.html']
+        return ['inventory/order_list.html']
 
 
 class ArchivedOrderListView(LoginRequiredMixin, ListView):

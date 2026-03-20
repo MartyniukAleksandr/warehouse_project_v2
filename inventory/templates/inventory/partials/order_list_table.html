@@ -1,0 +1,130 @@
+{% load i18n %}
+
+{% if not grouped_orders %}
+    <div class="alert alert-info">{% trans "Активних замовлень не знайдено." %}</div>
+{% else %}
+
+    {# Цикл по датах (з вашого get_context_data) #}
+    {% for delivery_date, daily_orders in grouped_orders %}
+
+        <h3 class="mt-4 mb-3 border-bottom pb-2">
+            <i class="bi bi-calendar-check-fill text-primary"></i>
+            {% trans "Дата доставки" %}:
+            <strong>{{ delivery_date|date:"d.m.Y"|default:"Без дати доставки" }}</strong>
+            {% if delivery_date and delivery_date == today %}
+                <span class="badge bg-danger ms-2">{% trans "Сьогодні" %}</span>
+            {% endif %}
+        </h3>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">{% trans "№" %}</th>
+                                <th style="width: 15%;">{% trans "Замовник" %}</th>
+                                <th>{% trans "Позиції" %}</th>
+                                <th style="width: 10%;">{% trans "Автомобіль" %}</th>
+                                <th style="width: 10%;">{% trans "Водій" %}</th>
+                                <th style="width: 15%;">{% trans "Примітки" %}</th>
+                                <th style="width: 10%;">{% trans "Статус" %}</th>
+                                <th style="width: 100px;">{% trans "Дії" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in daily_orders %}
+                            <tr>
+                                <td>{{ page_obj.start_index|add:order.forloop_counter0 }}</td>
+                                <td class="fw-bold">{{ order.customer }}</td>
+                                <td>
+                                    <ul class="list-unstyled mb-0 small">
+                                        {% for item in order.items.all %}
+                                        <li>{{ item.product.name }} - <strong>{{ item.ordered_units }}</strong> {% trans "шт." %}</li>
+                                        {% empty %}
+                                        <li class="text-muted">{% trans "Немає позицій" %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    {% if order.car %}
+                                        <span class="fw-bold">{{ order.car }}</span>
+                                    {% else %}
+                                        <span class="text-muted">–</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.driver %}
+                                        {{ order.driver }}
+                                    {% else %}
+                                        <span class="text-muted">–</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="small text-muted">{{ order.notes|linebreaksbr|default:"-" }}</span></td>
+                                <td>
+                                    {% if order.status == 'SHIPPED' %}<span class="badge bg-success">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'PENDING' %}<span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'LOADED' %}<span class="badge bg-info">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'CANCELLED' %}<span class="badge bg-danger">{{ order.get_status_display }}</span>
+                                    {% else %}<span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if active_shift %}
+                                    <div class="d-flex gap-1 flex-nowrap">
+                                        {% if order.status == 'PENDING' %}
+                                            <form action="{% url 'inventory:order_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-info" title='{% trans "Готове/Завантажено" %}'><i class="bi bi-box-arrow-up"></i></button></form>
+                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Редагувати" %}'><i class="bi bi-pencil-fill"></i></a>
+                                            <form action="{% url 'inventory:order_cancel' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning" title='{% trans "Скасувати замовлення" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-x-circle"></i></button></form>
+                                        {% elif order.status == 'LOADED' %}
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#driverModal" 
+                                                    data-order-id="{{ order.pk }}" data-order-customer="{{ order.customer }}"
+                                                    data-driver-id="{{ order.driver.pk|default_if_none:'' }}" data-car-id="{{ order.car.pk|default_if_none:'' }}"
+                                                    data-action-url="{% url 'inventory:order_ship' pk=order.pk %}" title='{% trans "Відправити" %}'><i class="bi bi-truck"></i></button>
+                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Відхилити завантаження" %}'><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                        {% elif order.status == 'CANCELLED' %}
+                                            <form action="{% url 'inventory:delete_cancelled_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Видалити назавжди" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-trash-fill"></i></button></form>
+                                        {% else %}
+                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Переглянути" %}'><i class="bi bi-eye-fill"></i></a>
+                                            <form action="{% url 'inventory:soft_delete_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-secondary" title='{% trans "Архів" %}' onclick="return confirm('{% trans "Заархівувати?" %}')"><i class="bi bi-archive-fill"></i></button></form>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {# ПАГІНАЦІЯ ДЛЯ HTMX #}
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% with q=request.GET.q|default:'' d_filter=request.GET.delivery_date_filter|default:'' %}
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                           hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                           hx-target="#order-results" hx-push-url="true">&laquo;</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                           hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                           hx-target="#order-results" hx-push-url="true">&raquo;</a>
+                    </li>
+                {% endif %}
+            {% endwith %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% endif %}

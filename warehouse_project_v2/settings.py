@@ -18,7 +18,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+
+# Для локальної розробки можна залишити так, а для продакшну використовувати змінну середовища ALLOWED_HOSTS.
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -73,18 +76,20 @@ WSGI_APPLICATION = 'warehouse_project_v2.wsgi.application'
 # --- Налаштування бази даних ---
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600, # Опціонально: тримає з'єднання відкритим (прискорює роботу)
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# Для Heroku або інших хостингів, які надають URL бази даних через змінні середовища, можна використовувати dj_database_url для автоматичного налаштування бази даних.
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         conn_max_age=600, # Опціонально: тримає з'єднання відкритим (прискорює роботу)
+#         conn_health_checks=True,
+#     )
+# }
 #--- Кінець налаштувань бази даних ---
 
 #------- Налаштування I18N ---
