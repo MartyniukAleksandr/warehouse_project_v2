@@ -52,7 +52,8 @@
         hx-indicator="#main-spinner"
         hx-trigger="change, keyup delay:400ms from:#id_q"
         hx-push-url="true">
-
+        {# ДОДАЄМО ЦЕЙ РЯДОК: #}
+        <input type="hidden" name="page" id="current-page-input" value="{{ page_obj.number|default:1 }}">
 
         {# Пошук за текстом #}
         <div class="col-12 col-md-5 col-lg-4">
@@ -99,8 +100,7 @@
     hx-trigger="every 12s" 
     hx-target="this"
     hx-indicator="#main-spinner"
-    hx-include="[role='search']">
-    {% include "inventory/partials/order_list_table.html" %}
+    hx-include="[role='search']">{% include "inventory/partials/order_list_table.html" %}
 </div>
 
 
@@ -196,6 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Поле nickname залишається порожнім
         });
     }
+});
+// Коли користувач щось пише в пошук, скидаємо номер сторінки на 1
+document.getElementById('id_q').addEventListener('input', function() {
+    document.getElementById('current-page-input').value = 1;
+});
+document.getElementById('id_delivery_date_filter').addEventListener('change', function() {
+    document.getElementById('current-page-input').value = 1;
 });
 </script>
 {% endblock %}

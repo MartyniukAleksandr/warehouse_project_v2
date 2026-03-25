@@ -56,34 +56,94 @@
     </div>
 </div>
 {% endblock %}
-
+{% comment %}
+    Цей шаблон відповідає за створення та редагування постачання.
+    Він включає в себе:
+    - Форма для основної інформації про постачання (постачальник, дата, примітки)
+    - Динамічний набір форм для позицій постачання (товар + кількість)
+    - Кнопки для додавання нових позицій та видалення існуючих
+{% endcomment %}
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const addFormBtn = document.getElementById('add-form-btn');
     const formsContainer = document.getElementById('item-forms-container');
-    const emptyFormTemplate = document.getElementById('empty-form').cloneNode(true);
-    emptyFormTemplate.classList.remove('d-none');
-    emptyFormTemplate.removeAttribute('id');
-
     const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
-    let formNum = {{ formset.total_form_count }};
+    const emptyFormTemplate = document.getElementById('empty-form');
 
-    addFormBtn.addEventListener('click', function() {
-        const newForm = emptyFormTemplate.cloneNode(true);
-        const formRegex = new RegExp('__prefix__', 'g');
+    /**
+     * Функція для активації пошуку Select2
+     */
+    function initSelect2(element) {
+        // Якщо на елементі вже був Select2 (наприклад, при помилках валідації), знищуємо старий
+        if ($(element).hasClass("select2-hidden-accessible")) {
+            $(element).select2('destroy');
+        }
 
-        newForm.innerHTML = newForm.innerHTML.replace(formRegex, formNum);
-        formsContainer.append(newForm);
-        totalForms.value = parseInt(totalForms.value) + 1;
-        formNum++;
+        $(element).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '{% trans "Оберіть товар..." %}',
+            allowClear: true,
+            dropdownParent: $(element).parent()
+        });
+    }
+
+    /**
+     * Ініціалізація для полів, які вже завантажені на сторінці
+     */
+    $('select[id$="-product"]').each(function() {
+        initSelect2(this);
     });
 
+    // --- Обробник додавання нової позиції ---
+    if (addFormBtn) {
+        addFormBtn.addEventListener('click', function() {
+            let formNum = parseInt(totalForms.value);
+            
+            // Клонуємо прихований шаблон
+            const newForm = emptyFormTemplate.cloneNode(true);
+            newForm.removeAttribute('id');
+            newForm.classList.remove('d-none');
+
+            // --- ОЧИЩЕННЯ ВІД БАГІВ КЛОНУВАННЯ ---
+            // Видаляємо всі контейнери Select2, які могли бути в шаблоні
+            $(newForm).find('.select2-container').remove();
+            $(newForm).find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id').show();
+
+            // Заміна префікса __prefix__ на реальний номер
+            newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formNum);
+
+            formsContainer.append(newForm);
+
+            // Активація пошуку в новому рядку
+            const newSelect = newForm.querySelector('select[id$="-product"]');
+            if (newSelect) {
+                initSelect2(newSelect);
+            }
+
+            // Оновлюємо лічильник форм для Django
+            totalForms.value = formNum + 1;
+        });
+    }
+
+    // --- Обробник видалення позиції ---
     formsContainer.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('remove-form-btn')) {
-            e.target.closest('.item-form').remove();
-            // Note: We don't decrement TOTAL_FORMS for dynamic additions that are removed before saving.
-            // Django's formset handles this.
+            const formToRemove = e.target.closest('.item-form');
+            if (formToRemove) {
+                // Знищуємо Select2 перед видаленням
+                $(formToRemove).find('select').select2('destroy');
+                formToRemove.remove();
+                
+                // Після видалення ми НЕ зменшуємо TOTAL_FORMS вручну (Django сам це обробить),
+                // але важливо, щоб індекси залишалися унікальними.
+            }
         }
     });
 });

@@ -177,82 +177,87 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     const formsContainer = document.getElementById('item-forms-container');
     const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
     const emptyFormTemplate = document.getElementById('empty-form');
     const addFormBtn = document.getElementById('add-form-btn');
 
-    // Регулярний вираз для пошуку префікса форми (наприклад, items-0, items-1, id_items-0)
-    const formRegex = new RegExp('items-(\\d+)', 'g');
-
-    /**
-     * Оновлює індекси всіх полів форми (ID, NAME, FOR) після додавання або видалення.
-     * @param {HTMLElement} container - Контейнер з усіма формами.
-     */
-    function updateFormIndices(container) {
-        const forms = container.querySelectorAll('.item-form');
-
-        forms.forEach((form, index) => {
-            const replaceIndex = (element) => {
-                if (element.name) {
-                    element.name = element.name.replace(formRegex, `items-${index}`);
-                }
-                if (element.id) {
-                    element.id = element.id.replace(formRegex, `items-${index}`);
-                }
-                if (element.htmlFor) {
-                    element.htmlFor = element.htmlFor.replace(formRegex, `items-${index}`);
-                }
-            };
-
-            form.querySelectorAll('*').forEach(replaceIndex);
-
-            // Оновлюємо приховані поля ID та DELETE
-            const idInput = form.querySelector('input[id$="-id"]');
-            if (idInput) {
-                idInput.id = `id_items-${index}-id`;
-                idInput.name = `items-${index}-id`;
-            }
-
-            const deleteInput = form.querySelector('input[id$="-DELETE"]');
-            if (deleteInput) {
-                deleteInput.id = `id_items-${index}-DELETE`;
-                deleteInput.name = `items-${index}-DELETE`;
-            }
+    // --- Функція для ініціалізації товарів (у динамічних рядках) ---
+    function initProductSelect2(element) {
+        if ($(element).hasClass("select2-hidden-accessible")) {
+            $(element).select2('destroy');
+        }
+        $(element).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '{% trans "Оберіть товар..." %}',
+            allowClear: true,
+            dropdownParent: $(element).parent()
         });
-        totalForms.value = forms.length;
     }
 
+    // --- Функція для основних полів (Водій, Авто) ---
+    function initMainSelect2(selector, placeholderText) {
+        $(selector).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: placeholderText,
+            allowClear: true
+        });
+    }
 
-    // --- Обробник додавання форми ---
+    // 1. Активуємо пошук для існуючих товарів
+    $('select[id$="-product"]').each(function() {
+        initProductSelect2(this);
+    });
+
+    // 2. Активуємо пошук для Водія та Авто (по імені поля)
+    initMainSelect2('select[name="driver"]', '{% trans "Пошук водія..." %}');
+    initMainSelect2('select[name="car"]', '{% trans "Пошук автомобіля..." %}');
+
+    // --- Додавання нових рядків ---
     if (addFormBtn) {
         addFormBtn.addEventListener('click', function() {
             let formNum = parseInt(totalForms.value);
-
             const newForm = emptyFormTemplate.cloneNode(true);
             newForm.removeAttribute('id');
             newForm.classList.remove('d-none');
 
-            const formPlaceholderRegex = new RegExp('__prefix__', 'g');
+            // Очищення від залишків Select2 при клонуванні
+            $(newForm).find('.select2-container').remove();
+            $(newForm).find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id').show();
 
-            newForm.innerHTML = newForm.innerHTML.replace(formPlaceholderRegex, formNum);
-
+            newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formNum);
             formsContainer.append(newForm);
 
-            updateFormIndices(formsContainer);
+            // Ініціалізуємо Select2 для нового товару
+            const newSelect = newForm.querySelector('select[id$="-product"]');
+            if (newSelect) {
+                initProductSelect2(newSelect);
+            }
+
+            totalForms.value = formNum + 1;
         });
     }
 
-    // --- Обробник видалення форми ---
+    // --- Видалення рядків ---
     formsContainer.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('remove-form-btn')) {
+        if (e.target && e.target.closest('.remove-form-btn')) {
             const formToRemove = e.target.closest('.item-form');
             if (formToRemove) {
+                $(formToRemove).find('select').select2('destroy');
                 formToRemove.remove();
-                // Після видалення обов'язково перенумеровуємо форми!
-                updateFormIndices(formsContainer);
+                
+                // Оновлюємо лічильник для Django
+                const forms = formsContainer.querySelectorAll('.item-form');
+                totalForms.value = forms.length;
             }
         }
     });

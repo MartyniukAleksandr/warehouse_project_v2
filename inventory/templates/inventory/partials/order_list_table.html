@@ -101,30 +101,47 @@
     {% endfor %}
 
     {# ПАГІНАЦІЯ ДЛЯ HTMX #}
-    {% if is_paginated %}
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% with q=request.GET.q|default:'' d_filter=request.GET.delivery_date_filter|default:'' %}
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                           hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                           hx-target="#order-results" hx-push-url="true">&laquo;</a>
-                    </li>
-                {% endif %}
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% with q=request.GET.q|default:'' d_filter=request.GET.delivery_date_filter|default:'' %}
+            
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <button class="page-link" 
+                       hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                       hx-target="#order-results"
+                       hx-push-url="true"
+                       hx-indicator="#main-spinner"
+                       onclick="document.getElementById('current-page-input').value = '{{ page_obj.previous_page_number }}'">
+                       &laquo;
+                    </button>
+                </li>
+            {% endif %}
 
-                <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            <li class="page-item disabled">
+                <span class="page-link text-dark fw-bold">
+                    {% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
 
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                           hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                           hx-target="#order-results" hx-push-url="true">&raquo;</a>
-                    </li>
-                {% endif %}
-            {% endwith %}
-        </ul>
-    </nav>
-    {% endif %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    {# Міняємо <a> на <button>, щоб уникнути конфліктів з href #}
+                    <button class="page-link" 
+                       hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
+                       hx-target="#order-results"
+                       hx-push-url="true"
+                       hx-indicator="#main-spinner"
+                       onclick="document.getElementById('current-page-input').value = '{{ page_obj.next_page_number }}'">
+                       &raquo;
+                    </button>
+                </li>
+            {% endif %}
+
+        {% endwith %}
+    </ul>
+</nav>
+{% endif %}
 
 {% endif %}

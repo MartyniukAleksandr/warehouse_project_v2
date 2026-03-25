@@ -19,6 +19,19 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
+msgid "Заархівувати?"
+msgstr "Zarchiwizować?"
+
+msgid "Оберіть товар..."
+msgstr "Wybierz produkt..."
+
+msgid "Пошук водія..."
+msgstr "Szukanie kierowcy..."
+
+msgid "Пошук автомобіля..."
+msgstr "Szukanie samochodu..."
+
+
 #: .\inventory\admin.py:33
 msgid "Залишки на складі"
 msgstr "Stany magazynowe"
