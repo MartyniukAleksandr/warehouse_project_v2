@@ -4,7 +4,7 @@ from itertools import groupby
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView
-from django.db.models import Sum, F, Q
+from django.db.models import Sum, F, Q, Case, When, Value, IntegerField
 from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext as _
@@ -286,80 +286,79 @@ class OrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = 'inventory/order_list.html'
     context_object_name = 'orders'
-    paginate_by = 10
+    paginate_by = 50
 
     def get_queryset(self):
-        # 1. Початковий queryset (тільки неархівовані замовлення)
+        # 1. Початковий queryset
         queryset = super().get_queryset().filter(is_deleted=False).prefetch_related('items', 'items__product')
 
         # Отримуємо GET-параметри
         query = self.request.GET.get('q')
         filter_date_str = self.request.GET.get('delivery_date_filter')
 
-        # --- 2. Фільтрація за пошуковим запитом (customer, product) ---
+        # 2. Фільтрація за пошуком
         if query:
             queryset = queryset.filter(
                 Q(customer__icontains=query) | Q(items__product__name__icontains=query)
             ).distinct()
 
-        # --- 3. Фільтрація за датою доставки (НОВИЙ ФУНКЦІОНАЛ) ---
+        # 3. Фільтрація за датою
         if filter_date_str:
             try:
-                # Перетворюємо рядок дати на об'єкт date
                 filter_date = date.fromisoformat(filter_date_str)
-
-                # Фільтруємо замовлення, де delivery_date точно дорівнює вибраній даті
                 queryset = queryset.filter(delivery_date=filter_date)
-
             except ValueError:
-                # Обробка помилки, якщо користувач ввів некоректний формат дати
-                # Можна ігнорувати або додати повідомлення про помилку через messages framework,
-                # але для простоти поки ігноруємо.
                 pass
 
-                # Сортування: за датою доставки (від найближчої до найдальшої)
-        # та за датою створення (якщо delivery_date однакові)
-        queryset = queryset.order_by('delivery_date', 'created_at')
+        # --- 4. СОРТУВАННЯ ЗА СТАТУСОМ ---
+        # Визначаємо пріоритет: чим менше число, тим вище в списку
+        queryset = queryset.annotate(
+            status_priority=Case(
+                When(status='PENDING', then=Value(4)),    # В очікуванні
+                When(status='LOADED', then=Value(1)),     # Готове/Завантажено
+                When(status='DOCUMENTS', then=Value(2)),  # Документи
+                When(status='SHIPPED', then=Value(3)),    # Виїхало
+                When(status='CANCELLED', then=Value(5)),  # Скасовано
+                default=Value(6),
+                output_field=IntegerField(),
+            )
+        )
 
-        return queryset
+        # Сортуємо: Дата доставки -> Пріоритет статусу -> Дата створення
+        return queryset.order_by('delivery_date', 'status_priority', 'created_at')
 
     def get_context_data(self, **kwargs):
-        # Викликаємо батьківський метод для отримання стандартного контексту (включно з пагінацією)
         context = super().get_context_data(**kwargs)
 
-        # 1. Отримуємо ЗАМОВЛЕННЯ З ПОТОЧНОЇ СТОРІНКИ пагінації
+        # 1. Отримуємо замовлення поточної сторінки
         page_obj = context.get('page_obj')
         orders_on_page = page_obj.object_list if page_obj else self.get_queryset()
-        # Визначаємо початковий індекс для поточної сторінки
-        start_index = page_obj.start_index if page_obj else 1
-        current_index = 0  # Індекс зміщення (0, 1, 2...) відносно початку сторінки
+        
+        # Початковий індекс для поточної сторінки (для наскрізної нумерації, якщо треба)
+        current_index = 0 
 
-        # 2. Групуємо замовлення за датою доставки
+        # 2. Групуємо замовлення
         grouped_orders = defaultdict(list)
         for order in orders_on_page:
+            # ПЕРЕДАЄМО ІНДЕКС (виправляє VariableDoesNotExist)
             order.forloop_counter0 = current_index
-            # Використовуємо дату доставки як ключ
+            
             grouped_orders[order.delivery_date].append(order)
             current_index += 1
 
-        # 3. Конвертуємо defaultdict у відсортований список кортежів (дата, список_замовлень)
-        # Оскільки queryset вже відсортовано, групування буде відбуватися у правильному порядку.
-        # Але явне сортування ключами забезпечить порядок, якщо пагінатор розіб'є групу.
-        sorted_groups = sorted(grouped_orders.items(), key=lambda item: item[0] if item[0] is not None else date.max)
+        # 3. Конвертуємо у відсортований список груп
+        sorted_groups = sorted(
+            grouped_orders.items(), 
+            key=lambda item: item[0] if item[0] is not None else date.max
+        )
 
-        # 4. Передаємо нові дані в контекст
+        # 4. Формуємо контекст (без списків водіїв та авто)
         context['grouped_orders'] = sorted_groups
         context['driver_form'] = DriverInfoForm()
-        context['today'] = date.today()  # Для порівняння в шаблоні
-
-        # Передаємо вибрану дату для фільтра (як було)
+        context['today'] = date.today()
+        
         selected_date_str = self.request.GET.get('delivery_date_filter')
         context['selected_delivery_date'] = selected_date_str
-
-        # Видаляємо 'orders' з контексту, щоб у шаблоні ітерувати лише по 'grouped_orders'
-        # context.pop('orders', None)
-        # Примітка: Ми не видаляємо 'orders' повністю, оскільки пагінатор може його використовувати,
-        # але в шаблоні ми ітеруємо по 'grouped_orders'.
 
         return context
     
@@ -798,6 +797,19 @@ def load_order(request, pk):
 
 @login_required
 @require_POST
+def order_documents(request, pk):
+    """Переводить замовлення зі статусу LOADED у DOCUMENTS."""
+    order = get_object_or_404(Order, pk=pk)
+    if order.status == Order.OrderStatus.LOADED:
+        order.status = Order.OrderStatus.DOCUMENTS
+        order.save()
+        messages.success(request, _("Замовлення №{id} переведено в статус 'Документи'.").format(id=order.id))
+    else:
+        messages.error(request, _("Тільки завантажені замовлення можуть бути переведені в 'Документи'."))
+    return redirect('inventory:order_list')
+
+@login_required
+@require_POST
 def reject_load(request, pk):
     """
     Повертає статус замовлення з "Готове/Завантажено" назад до "В очікуванні".
@@ -807,8 +819,12 @@ def reject_load(request, pk):
         order.status = Order.OrderStatus.PENDING
         order.save()
         messages.success(request, _("Статус замовлення №{id} повернуто до 'В очікуванні'.").format(id=order.id))
+    elif order.status == Order.OrderStatus.DOCUMENTS:
+        order.status = Order.OrderStatus.LOADED
+        order.save()
+        messages.success(request, _("Статус замовлення №{id} повернуто до 'Готове/Завантажено'.").format(id=order.id))
     else:
-        messages.warning(request, _("Відхилити завантаження можна лише для замовлень зі статусом 'Готове/Завантажено'."))
+        messages.warning(request, _("Відхилити завантаження можна лише для замовлень зі статусом 'Готове/Завантажено' або 'Документи'."))
     return redirect('inventory:order_list')
 
 
@@ -823,8 +839,8 @@ def ship_with_driver_info(request, pk):
     order = get_object_or_404(Order, pk=pk)
 
     # 2. Якщо статус не "Готове/Завантажено", показуємо повідомлення про помилку
-    if order.status != Order.OrderStatus.LOADED:
-        messages.error(request, _("Неможливо відправити замовлення, яке не має статусу 'Готове/Завантажено'."))
+    if order.status != Order.OrderStatus.DOCUMENTS:
+        messages.error(request, _("Неможливо відправити замовлення, яке не має статусу 'Документи'."))
         return redirect('inventory:order_list')
 
     # 3. Якщо статус правильний, продовжуємо обробку форми

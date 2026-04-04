@@ -5,6 +5,7 @@
 
 {% block content %}
 <h2>{{ page_title }}{% if order.id %} №{{ order.id }}{% endif %}</h2>
+
     {% if messages %}
         <div class="container mt-3">
             {% for message in messages %}
@@ -22,122 +23,99 @@
 </div>
 {% endif %}
 
-<form method="post">
+<form method="post" id="order-form">
     {% csrf_token %}
-    <div class="card">
-        <div class="card-header">{% trans "Інформація про замовлення" %}</div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">{% trans "Інформація про замовлення" %}</div>
         <div class="card-body">
-
             <div class="row">
-                {# --- Дата Доставки --- #}
                 <div class="col-md-3 mb-3">
-                    <label for="{{ order_form.delivery_date.id_for_label }}" class="form-label fw-bold">
-                        {{ order_form.delivery_date.label }}
-                    </label>
+                    <label class="form-label fw-bold">{{ order_form.delivery_date.label }}</label>
                     {{ order_form.delivery_date }}
-                    {% if order_form.delivery_date.errors %}
-                        <div class="text-danger small">{{ order_form.delivery_date.errors }}</div>
-                    {% endif %}
                 </div>
-
-                {# --- Замовник --- #}
                 <div class="col-md-9 mb-3">
-                    <label for="{{ order_form.customer.id_for_label }}" class="form-label fw-bold">
-                        {{ order_form.customer.label }}
-                    </label>
+                    <label class="form-label fw-bold">{{ order_form.customer.label }}</label>
                     {{ order_form.customer }}
-                    {% if order_form.customer.errors %}
-                        <div class="text-danger small">{{ order_form.customer.errors }}</div>
-                    {% endif %}
                 </div>
             </div>
-
+            
             <div class="row">
-                {# --- Водій --- #}
                 <div class="col-md-6 mb-3">
-                    <label for="{{ order_form.driver.id_for_label }}" class="form-label">
-                        {{ order_form.driver.label }}
-                    </label>
+                    <label class="form-label fw-bold">{{ order_form.driver.label }}</label>
                     {{ order_form.driver }}
-                    {% if order_form.driver.errors %}
-                        <div class="text-danger small">{{ order_form.driver.errors }}</div>
-                    {% endif %}
                 </div>
-
-                {# --- Автомобіль --- #}
                 <div class="col-md-6 mb-3">
-                    <label for="{{ order_form.car.id_for_label }}" class="form-label">
-                        {{ order_form.car.label }}
-                    </label>
+                    <label class="form-label fw-bold">{{ order_form.car.label }}</label>
                     {{ order_form.car }}
-                    {% if order_form.car.errors %}
-                        <div class="text-danger small">{{ order_form.car.errors }}</div>
-                    {% endif %}
                 </div>
             </div>
 
-            {# --- Примітки --- #}
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label for="{{ order_form.notes.id_for_label }}" class="form-label">
-                        {{ order_form.notes.label }}
-                    </label>
+                    <label class="form-label fw-bold">{{ order_form.notes.label }}</label>
                     {{ order_form.notes }}
-                    {% if order_form.notes.errors %}
-                        <div class="text-danger small">{{ order_form.notes.errors }}</div>
-                    {% endif %}
                 </div>
             </div>
-
-            {# Приховані поля, які не були виведені вручну (ID, status, work_shift) #}
-            {% for hidden in order_form.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-
+            
+            {% for hidden in order_form.hidden_fields %}{{ hidden }}{% endfor %}
         </div>
     </div>
 
-    <div class="card mt-4">
-        <div class="card-header">{% trans "Позиції замовлення" %}</div>
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-success text-white">{% trans "Позиції замовлення" %}</div>
         <div class="card-body">
             {{ formset.management_form }}
-            {% if formset.non_form_errors %}
-                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
-            {% endif %}
-
+            
             <div id="item-forms-container">
                 {% for form in formset %}
                 <div class="row item-form align-items-center mb-3 border-bottom pb-3">
-                    {# Приховані поля позиції (ID, DELETE) #}
                     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
 
                     <div class="col-md-6">
-                        <label class="form-label">{{ form.product.label }}</label>
+                        <label class="form-label small text-muted">{{ form.product.label }}</label>
                         {{ form.product }}
-                        {% if form.product.errors %}<div class="text-danger small">{{ form.product.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">{{ form.ordered_units.label }}</label>
+                        <label class="form-label small text-muted">{{ form.ordered_units.label }}</label>
                         {{ form.ordered_units }}
-                        {% if form.ordered_units.errors %}<div class="text-danger small">{{ form.ordered_units.errors }}</div>{% endif %}
                     </div>
-                    <div class="col-md-2 align-self-end">
-                        {# Приховуємо чекбокс "Видалити" для відправлених замовлень #}
+                    <div class="col-md-2 align-self-end text-center">
                         {% if order.status != 'SHIPPED' and formset.can_delete %}
-                        <div class="form-check">
-                            {# Перевіряємо наявність DELETE, оскільки він може бути прихованим #}
+                        <div class="form-check d-inline-block">
                             {% if form.DELETE %}
                                 {{ form.DELETE }}
-                                <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">{% trans "Видалити" %}</label>
+                                <label class="form-check-label text-danger">{% trans "Видалити" %}</label>
                             {% endif %}
                         </div>
                         {% endif %}
                     </div>
+
+                    <div class="col-12 mt-3">
+                        <div class="row bg-light p-2 rounded border mx-0">
+                            <div class="col-md-4">
+                                <label class="small text-muted mb-1">{% trans "Тип палети" %}</label>
+                                <select class="form-select form-select-sm pallet-input pallet-type">
+                                    <option value="">{% trans "Без палет" %}</option>
+                                    <option value="{% trans 'Велика (100*120)' %}">{% trans "Велика (100*120)" %}</option>
+                                    <option value="{% trans 'Мала (100*80)' %}">{% trans "Мала (100*80)" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-muted mb-1">{% trans "Кількість палет" %}</label>
+                                <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-count" placeholder="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-muted mb-1">{% trans "Кількість на палеті" %}</label>
+                                <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-units" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
-            {# Приховуємо кнопку "Додати позицію" для відправлених замовлень #}
-            {% if order.status != 'SHIPPED' and not order.is_deleted %}
+
+            {% if order.status != 'SHIPPED' %}
             <button type="button" id="add-form-btn" class="btn btn-outline-success btn-sm mt-2">
                 <i class="bi bi-plus-circle"></i> {% trans "Додати позицію" %}
             </button>
@@ -145,10 +123,9 @@
         </div>
     </div>
 
-    <div class="mt-4">
-        {# Приховуємо кнопки "Зберегти" та "Скасувати", залишаючи "Повернутися" #}
-        {% if order.status != 'SHIPPED' and not order.is_deleted %}
-            <button type="submit" class="btn btn-primary">{% trans "Зберегти замовлення" %}</button>
+    <div class="mt-4 mb-5">
+        {% if order.status != 'SHIPPED' %}
+            <button type="submit" class="btn btn-primary px-4">{% trans "Зберегти замовлення" %}</button>
             <a href="{% url 'inventory:order_list' %}" class="btn btn-secondary">{% trans "Скасувати" %}</a>
         {% else %}
             <a href="{% url 'inventory:order_list' %}" class="btn btn-secondary">{% trans "Повернутися до списку" %}</a>
@@ -156,22 +133,43 @@
     </div>
 </form>
 
-<div id="empty-form" class="row item-form align-items-center mb-3 border-bottom pb-3 d-none">
-    <div class="col-md-6">
-        <label class="form-label">{{ formset.empty_form.product.label }}</label>
-        {{ formset.empty_form.product }}
+<div id="empty-form" class="d-none">
+    <div class="row item-form align-items-center mb-3 border-bottom pb-3">
+        <div class="col-md-6">
+            <label class="form-label small text-muted">{% trans "Товар" %}</label>
+            {{ formset.empty_form.product }}
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-muted">{% trans "Кількість" %}</label>
+            {{ formset.empty_form.ordered_units }}
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="button" class="btn btn-danger btn-sm remove-form-btn">
+                <i class="bi bi-trash"></i> {% trans "Прибрати" %}
+            </button>
+        </div>
+        
+        <div class="col-12 mt-3">
+            <div class="row bg-light p-2 rounded border mx-0">
+                <div class="col-md-4">
+                    <label class="small text-muted mb-1">{% trans "Тип палети" %}</label>
+                    <select class="form-select form-select-sm pallet-input pallet-type">
+                        <option value="">{% trans "Без палет" %}</option>
+                        <option value="{% trans 'Велика (100*120)' %}">{% trans "Велика (100*120)" %}</option>
+                        <option value="{% trans 'Мала (100*80)' %}">{% trans "Мала (100*80)" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted mb-1">{% trans "Кількість палет" %}</label>
+                    <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-count" placeholder="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted mb-1">{% trans "Кількість на палеті" %}</label>
+                    <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-units" placeholder="0">
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">{{ formset.empty_form.ordered_units.label }}</label>
-        {{ formset.empty_form.ordered_units }}
-    </div>
-    <div class="col-md-2 align-self-end">
-        <button type="button" class="btn btn-danger btn-sm remove-form-btn">{% trans "Прибрати" %}</button>
-    </div>
-    {# Також не забуваємо про приховані поля у порожній формі #}
-    {% for hidden in formset.empty_form.hidden_fields %}
-        {{ hidden }}
-    {% endfor %}
 </div>
 
 {% endblock %}
@@ -184,83 +182,83 @@
 
 <script>
 $(document).ready(function() {
-    const formsContainer = document.getElementById('item-forms-container');
-    const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
-    const emptyFormTemplate = document.getElementById('empty-form');
-    const addFormBtn = document.getElementById('add-form-btn');
+    const totalForms = $('#id_items-TOTAL_FORMS');
+    const container = $('#item-forms-container');
+    const emptyFormHtml = $('#empty-form').html();
 
-    // --- Функція для ініціалізації товарів (у динамічних рядках) ---
-    function initProductSelect2(element) {
-        if ($(element).hasClass("select2-hidden-accessible")) {
-            $(element).select2('destroy');
-        }
-        $(element).select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '{% trans "Оберіть товар..." %}',
-            allowClear: true,
-            dropdownParent: $(element).parent()
-        });
-    }
+    // Переклади для використання в JS (беруться з Django)
+    const i18n = {
+        notesHeader: "{% trans '--Палетна інформація--' %}",
+        pcs: "{% trans 'пал.' %}",
+        per: "{% trans 'по' %}",
+        units: "{% trans 'шт.' %}",
+        searchDriver: "{% trans 'Пошук водія...' %}",
+        searchCar: "{% trans 'Пошук автомобіля...' %}",
+        searchProduct: "{% trans 'Оберіть товар...' %}",
+        selectPlaceholder: "{% trans 'Оберіть зі списку...' %}"
+    };
 
-    // --- Функція для основних полів (Водій, Авто) ---
-    function initMainSelect2(selector, placeholderText) {
+    function applySelect2(selector, placeholderText) {
         $(selector).select2({
             theme: 'bootstrap-5',
             width: '100%',
-            placeholder: placeholderText,
+            placeholder: placeholderText || i18n.selectPlaceholder,
             allowClear: true
         });
     }
 
-    // 1. Активуємо пошук для існуючих товарів
+    // Ініціалізація головних полів
+    applySelect2('select[id$="driver"]', i18n.searchDriver);
+    applySelect2('select[id$="car"]', i18n.searchCar);
+    
+    // Ініціалізація існуючих товарів
     $('select[id$="-product"]').each(function() {
-        initProductSelect2(this);
+        applySelect2(this, i18n.searchProduct);
     });
 
-    // 2. Активуємо пошук для Водія та Авто (по імені поля)
-    initMainSelect2('select[name="driver"]', '{% trans "Пошук водія..." %}');
-    initMainSelect2('select[name="car"]', '{% trans "Пошук автомобіля..." %}');
+    function updateNotes() {
+        const notesField = $('textarea[name="notes"]');
+        let manualNotes = notesField.val().split(i18n.notesHeader)[0].trim();
+        let autoNotes = "";
 
-    // --- Додавання нових рядків ---
-    if (addFormBtn) {
-        addFormBtn.addEventListener('click', function() {
-            let formNum = parseInt(totalForms.value);
-            const newForm = emptyFormTemplate.cloneNode(true);
-            newForm.removeAttribute('id');
-            newForm.classList.remove('d-none');
+        $('.item-form:visible').each(function() {
+            const productText = $(this).find('select[id$="-product"] option:selected').text();
+            const pType = $(this).find('.pallet-type').val();
+            const pCount = $(this).find('.pallet-count').val();
+            const pUnits = $(this).find('.pallet-units').val();
 
-            // Очищення від залишків Select2 при клонуванні
-            $(newForm).find('.select2-container').remove();
-            $(newForm).find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id').show();
-
-            newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formNum);
-            formsContainer.append(newForm);
-
-            // Ініціалізуємо Select2 для нового товару
-            const newSelect = newForm.querySelector('select[id$="-product"]');
-            if (newSelect) {
-                initProductSelect2(newSelect);
+            // Перевірка, щоб не додавати пусті або службові рядки Select2
+            if (pType && pCount && pUnits && productText && !productText.includes('---') && !productText.includes(i18n.searchProduct)) {
+                autoNotes += `\n- ${productText}: ${pCount} ${i18n.pcs} (${pType}), ${i18n.per} ${pUnits} ${i18n.units}`;
             }
-
-            totalForms.value = formNum + 1;
         });
+
+        if (autoNotes) {
+            notesField.val(manualNotes + '\n\n' + i18n.notesHeader + autoNotes);
+        } else {
+            notesField.val(manualNotes);
+        }
     }
 
-    // --- Видалення рядків ---
-    formsContainer.addEventListener('click', function(e) {
-        if (e.target && e.target.closest('.remove-form-btn')) {
-            const formToRemove = e.target.closest('.item-form');
-            if (formToRemove) {
-                $(formToRemove).find('select').select2('destroy');
-                formToRemove.remove();
-                
-                // Оновлюємо лічильник для Django
-                const forms = formsContainer.querySelectorAll('.item-form');
-                totalForms.value = forms.length;
-            }
-        }
+    $('#add-form-btn').click(function() {
+        let formIdx = parseInt(totalForms.val());
+        let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIdx);
+        
+        const $newForm = $(newFormHtml).appendTo(container);
+        totalForms.val(formIdx + 1);
+
+        applySelect2($newForm.find('select[id$="-product"]'), i18n.searchProduct);
+        updateNotes();
     });
+
+    container.on('click', '.remove-form-btn', function() {
+        $(this).closest('.item-form').remove();
+        // Перераховуємо кількість видимих форм
+        totalForms.val($('.item-form:not(#empty-form .item-form)').length);
+        updateNotes();
+    });
+
+    $(document).on('change keyup', '.pallet-input, select[id$="-product"]', updateNotes);
 });
 </script>
 {% endblock %}

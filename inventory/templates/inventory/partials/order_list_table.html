@@ -1,5 +1,4 @@
 {% load i18n %}
-
 {% if not grouped_orders %}
     <div class="alert alert-info">{% trans "Активних замовлень не знайдено." %}</div>
 {% else %}
@@ -60,11 +59,21 @@
                                         <span class="text-muted">–</span>
                                     {% endif %}
                                 </td>
-                                <td><span class="small text-muted">{{ order.notes|linebreaksbr|default:"-" }}</span></td>
+                                {% comment %} <td><span class="small text-muted">{{ order.notes|linebreaksbr|default:"-" }}</span></td> {% endcomment %}
+                                <td> 
+                                    <div class="small text-muted" style="max-width: 300px; max-height: 100px; overflow-y: auto;">
+                                        {% if order.notes %}
+                                            {{ order.notes|linebreaksbr}}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </div>
+                                </td> 
                                 <td>
                                     {% if order.status == 'SHIPPED' %}<span class="badge bg-success">{{ order.get_status_display }}</span>
                                     {% elif order.status == 'PENDING' %}<span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
                                     {% elif order.status == 'LOADED' %}<span class="badge bg-info">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'DOCUMENTS' %}<span class="badge bg-primary">{{ order.get_status_display }}</span>
                                     {% elif order.status == 'CANCELLED' %}<span class="badge bg-danger">{{ order.get_status_display }}</span>
                                     {% else %}<span class="badge bg-secondary">{{ order.get_status_display }}</span>
                                     {% endif %}
@@ -77,6 +86,19 @@
                                             <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Редагувати" %}'><i class="bi bi-pencil-fill"></i></a>
                                             <form action="{% url 'inventory:order_cancel' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning" title='{% trans "Скасувати замовлення" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-x-circle"></i></button></form>
                                         {% elif order.status == 'LOADED' %}
+                                            <form action="{% url 'inventory:order_documents' order.pk %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-primary" title='{% trans "Оформити документи" %}'>
+                                                    <i class="bi bi-file-earmark-text"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger" title='{% trans "Повернути в очікування" %}'>
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </form>
+                                        {% elif order.status == 'DOCUMENTS' %}
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#driverModal" 
                                                     data-order-id="{{ order.pk }}" data-order-customer="{{ order.customer }}"
                                                     data-driver-id="{{ order.driver.pk|default_if_none:'' }}" data-car-id="{{ order.car.pk|default_if_none:'' }}"

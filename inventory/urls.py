@@ -27,6 +27,7 @@ urlpatterns = [
     path('order/<int:pk>/ship/', views.ship_with_driver_info, name='order_ship'), #new rout
     path('orders/<int:pk>/delete/', views.soft_delete_order, name='soft_delete_order'),
     path('orders/<int:pk>/load/', views.load_order, name='order_load'),
+    path('order/<int:pk>/documents/', views.order_documents, name='order_documents'),
     path('orders/<int:pk>/reject-load/', views.reject_load, name='order_reject_load'),
     path('orders/export/pdf/', views.export_orders_to_pdf, name='export_orders_pdf'),
     path('orders/<int:pk>/cancel/', views.cancel_order, name='order_cancel'),

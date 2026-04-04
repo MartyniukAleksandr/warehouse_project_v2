@@ -31,6 +31,56 @@ msgstr "Szukanie kierowcy..."
 msgid "Пошук автомобіля..."
 msgstr "Szukanie samochodu..."
 
+msgid "пал."
+msgstr "pal."
+
+msgid "Оформити документи"
+msgstr "Wystawić dokumenty"
+
+msgid "Велика (100*120)"
+msgstr "Duża (100*120)"
+
+msgid "Мала (100*80)"
+msgstr "Mała (100*80)"
+
+msgid "Тип палети"
+msgstr "Typ palety"
+
+msgid "Без палет"
+msgstr "Bez palet"
+
+msgid "--Палетна інформація--"
+msgstr "--Informacja o paletach--"
+
+msgid "Документи"
+msgstr "Dokumenty"
+
+msgid "по"
+msgstr "po"
+
+msgid "Кількість палет"
+msgstr "Liczba palet"
+
+msgid "Ви впевнені?"
+msgstr "Czy jesteś pewien?"
+
+msgid "Повернути в очікування"
+msgstr "Przywróć do oczekujących"
+
+msgid "Відхилити завантаження можна лише для замовлень зі статусом 'Готове/Завантажено' або 'Документи'"
+msgstr "Odrzucenie załadunku jest możliwe tylko dla zamówień o statusie 'Gotowe/Załadowane' lub 'Dokumenty'"
+
+msgid "Статус замовлення №{id} повернуто до 'Готове/Завантажено'."
+msgstr "Status zamówienia nr {id} został przywrócony do 'Gotowe/Załadowane'."
+
+msgid "Неможливо відправити замовлення, яке не має статусу 'Документи'."
+msgstr "Nie można wysłać zamówienia, które nie posiada statusu 'Dokumenty'."
+
+msgid "Замовлення №{id} переведено в статус 'Документи'."
+msgstr "Zamówienie nr {id} zostało przeniesione do statusu 'Dokumenty'."
+
+msgid "Тільки завантажені замовлення можуть бути переведені в 'Документи'."
+msgstr "Tylko załadowane zamówienia mogą zostać przeniesione do statusu 'Dokumenty'."
 
 #: .\inventory\admin.py:33
 msgid "Залишки на складі"

@@ -106,8 +106,9 @@ class Order(models.Model):
     class OrderStatus(models.TextChoices):
         PENDING = 'PENDING', _('В очікуванні')
         SHIPPED = 'SHIPPED', _('Виїхало')
-        LOADED = 'LOADED', _('Готове/Завантажено')  # Додано новий статус
+        LOADED = 'LOADED', _('Готове/Завантажено')  
         CANCELLED = 'CANCELLED', _('Скасовано')
+        DOCUMENTS = 'DOCUMENTS', _('Документи')
 
     customer = models.CharField(_("Замовник"), max_length=200)
     created_at = models.DateTimeField(_("Дата створення"), auto_now_add=True)
