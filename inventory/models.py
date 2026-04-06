@@ -83,6 +83,8 @@ class Product(models.Model):
                                            help_text=_(
                                                "Максимальне порогове значення наповнюваності для цього продукту <в штуках>"))  # Наприклад, 50 одиниць
     history = HistoricalRecords(inherit=True, table_name='product_history')
+    credit_units = models.IntegerField(_("Кількість в кредиті (борг) шт."), default=0, validators=[MinValueValidator(0)])
+    allow_credit = models.BooleanField(_("Дозволити продаж в кредит"), default=False, help_text=_("Якщо увімкнено, можна продавати товар в кредит, навіть якщо його немає на складі."))
 
     class Meta:
         verbose_name = _("Продукт")

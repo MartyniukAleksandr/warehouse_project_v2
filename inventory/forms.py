@@ -6,15 +6,33 @@ from django.utils.translation import gettext_lazy as _
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'company', 'quantity_per_pallet', 'total_units', 'notes']
+        # Додаємо обидва поля у список fields
+        fields = ['name', 'company', 'quantity_per_pallet', 'total_units', 'credit_units', 'notes'] # Якщо треба відображати allow_credit у формі, додайте його сюди
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'company': forms.TextInput(attrs={'class': 'form-control'}),
             'quantity_per_pallet': forms.NumberInput(attrs={'class': 'form-control'}),
             'total_units': forms.NumberInput(attrs={'class': 'form-control'}),
+            # 'allow_credit': forms.CheckboxInput(attrs={'class': 'form-check-input'}), # Якщо потрібно відображати allow_credit у формі
+            'credit_units': forms.NumberInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+        
+        # Логіка динамічного відображення поля credit_units:
+        # 1. Перевіряємо, чи ми редагуємо існуючий об'єкт (self.instance)
+        # 2. Перевіряємо, чи дозволено для нього кредит
+        if self.instance and self.instance.pk:
+            if not self.instance.allow_credit:
+                # Якщо кредит заборонено — видаляємо поле з форми
+                del self.fields['credit_units']
+        else:
+            # Якщо це створення нового товару (ще немає в базі), 
+            # зазвичай кредит ще не активований, тому приховуємо поле
+            del self.fields['credit_units']
+            
 class OrderForm(forms.ModelForm):
     """Форма для основної інформації про замовлення."""
     # Визначаємо delivery_date явно, щоб мати повний контроль над віджетом (наприклад, для DatePicker)

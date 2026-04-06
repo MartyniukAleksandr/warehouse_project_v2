@@ -82,6 +82,46 @@ msgstr "Zamówienie nr {id} zostało przeniesione do statusu 'Dokumenty'."
 msgid "Тільки завантажені замовлення можуть бути переведені в 'Документи'."
 msgstr "Tylko załadowane zamówienia mogą zostać przeniesione do statusu 'Dokumenty'."
 
+msgid "Кредит (борг) шт."
+msgstr "Kredyt (zadłużenie) szt."
+
+msgid "Якщо 'Дозволити кредит' увімкнено, товар можна відвантажувати при нульовому залишку."
+msgstr "Jeśli opcja „Zezwalaj na kredyt” jest włączona, towar może zostać wysłany przy zerowym stanie magazynowym."
+
+msgid "Якщо увімкнено, можна продавати товар в кредит, навіть якщо його немає на складі."
+msgstr "Jeśli włączone, towar można sprzedawać na kredyt, nawet jeśli nie ma go w magazynie."
+
+msgid "Кількість в кредиті (борг) шт."
+msgstr "Ilość w kredycie (zadłużenie) szt."
+
+msgid "Дозволити продаж в кредит"
+msgstr "Zezwalaj na sprzedaż na kredyt"
+
+msgid "Кредит (шт.)"
+msgstr "Kredyt (szt.)"
+
+msgid "Недостатньо!"
+msgstr "Niewystarczająco!"
+
+msgid "Кредит дозволено"
+msgstr "Kredyt dozwolony"
+
+msgid "Залишок:"
+msgstr "Saldo (pozostało):"
+
+msgid "Кредит ЗАБОРОНЕНО"
+msgstr "Kredyt ZABRONIONY"
+
+msgid "Параметри кредитування"
+msgstr "Parametry kredytowania"
+
+msgid "Борг"
+msgstr "Dług"
+
+msgid "Залишок (шт.)"
+msgstr "Saldo (szt.)"
+
+
 #: .\inventory\admin.py:33
 msgid "Залишки на складі"
 msgstr "Stany magazynowe"

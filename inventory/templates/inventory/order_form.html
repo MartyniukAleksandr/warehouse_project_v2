@@ -79,6 +79,7 @@
                     <div class="col-md-4">
                         <label class="form-label small text-muted">{{ form.ordered_units.label }}</label>
                         {{ form.ordered_units }}
+                        <div class="stock-info mt-1" style="font-size: 0.85rem; min-height: 1.2rem;"></div>
                     </div>
                     <div class="col-md-2 align-self-end text-center">
                         {% if order.status != 'SHIPPED' and formset.can_delete %}
@@ -142,6 +143,7 @@
         <div class="col-md-4">
             <label class="form-label small text-muted">{% trans "Кількість" %}</label>
             {{ formset.empty_form.ordered_units }}
+            <div class="stock-info mt-1" style="font-size: 0.85rem; min-height: 1.2rem;"></div>
         </div>
         <div class="col-md-2 align-self-end">
             <button type="button" class="btn btn-danger btn-sm remove-form-btn">
@@ -182,11 +184,13 @@
 
 <script>
 $(document).ready(function() {
+    // Дані про товари з Django (мають передаватися через контекст view як products_json)
+    const productsInfo = {{ products_json|safe }};
+
     const totalForms = $('#id_items-TOTAL_FORMS');
     const container = $('#item-forms-container');
     const emptyFormHtml = $('#empty-form').html();
 
-    // Переклади для використання в JS (беруться з Django)
     const i18n = {
         notesHeader: "{% trans '--Палетна інформація--' %}",
         pcs: "{% trans 'пал.' %}",
@@ -195,8 +199,44 @@ $(document).ready(function() {
         searchDriver: "{% trans 'Пошук водія...' %}",
         searchCar: "{% trans 'Пошук автомобіля...' %}",
         searchProduct: "{% trans 'Оберіть товар...' %}",
-        selectPlaceholder: "{% trans 'Оберіть зі списку...' %}"
+        selectPlaceholder: "{% trans 'Оберіть зі списку...' %}",
+        available: "{% trans 'Залишок:' %}",
+        lowStock: "{% trans 'Недостатньо!' %}",
+        creditAllowed: "{% trans 'Кредит дозволено' %}",
+        creditForbidden: "{% trans 'Кредит ЗАБОРОНЕНО' %}"
     };
+
+    // Функція перевірки залишків
+    function checkStock(row) {
+        const productSelect = row.find('select[id$="-product"]');
+        const qtyInput = row.find('input[id$="-ordered_units"]');
+        const infoBox = row.find('.stock-info');
+        
+        const productId = productSelect.val();
+        const qty = parseInt(qtyInput.val()) || 0;
+
+        if (!productId || !productsInfo[productId]) {
+            infoBox.html('');
+            return;
+        }
+
+        const product = productsInfo[productId];
+        const stock = product.stock;
+        const allowCredit = product.allow_credit;
+
+        if (qty > stock) {
+            if (allowCredit) {
+                infoBox.html(`<span class="text-warning fw-bold">${i18n.lowStock} (${i18n.available} ${stock})<br><small class="badge bg-info text-dark">${i18n.creditAllowed}</small></span>`);
+                qtyInput.removeClass('is-invalid');
+            } else {
+                infoBox.html(`<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> ${i18n.lowStock} (${i18n.available} ${stock})<br><small class="text-uppercase">${i18n.creditForbidden}</small></span>`);
+                qtyInput.addClass('is-invalid');
+            }
+        } else {
+            infoBox.html(`<span class="text-success small">${i18n.available} ${stock}</span>`);
+            qtyInput.removeClass('is-invalid');
+        }
+    }
 
     function applySelect2(selector, placeholderText) {
         $(selector).select2({
@@ -214,11 +254,13 @@ $(document).ready(function() {
     // Ініціалізація існуючих товарів
     $('select[id$="-product"]').each(function() {
         applySelect2(this, i18n.searchProduct);
+        checkStock($(this).closest('.row.item-form')); // Перевірка залишків при завантаженні
     });
 
     function updateNotes() {
         const notesField = $('textarea[name="notes"]');
-        let manualNotes = notesField.val().split(i18n.notesHeader)[0].trim();
+        let val = notesField.val() || "";
+        let manualNotes = val.split(i18n.notesHeader)[0].trim();
         let autoNotes = "";
 
         $('.item-form:visible').each(function() {
@@ -227,7 +269,6 @@ $(document).ready(function() {
             const pCount = $(this).find('.pallet-count').val();
             const pUnits = $(this).find('.pallet-units').val();
 
-            // Перевірка, щоб не додавати пусті або службові рядки Select2
             if (pType && pCount && pUnits && productText && !productText.includes('---') && !productText.includes(i18n.searchProduct)) {
                 autoNotes += `\n- ${productText}: ${pCount} ${i18n.pcs} (${pType}), ${i18n.per} ${pUnits} ${i18n.units}`;
             }
@@ -253,12 +294,16 @@ $(document).ready(function() {
 
     container.on('click', '.remove-form-btn', function() {
         $(this).closest('.item-form').remove();
-        // Перераховуємо кількість видимих форм
-        totalForms.val($('.item-form:not(#empty-form .item-form)').length);
+        totalForms.val($('.item-form:visible').length);
         updateNotes();
     });
 
-    $(document).on('change keyup', '.pallet-input, select[id$="-product"]', updateNotes);
+    // Додано: виклик checkStock при зміні товару або кількості
+    $(document).on('change keyup', '.pallet-input, select[id$="-product"], input[id$="-ordered_units"]', function() {
+        const row = $(this).closest('.item-form');
+        checkStock(row);
+        updateNotes();
+    });
 });
 </script>
 {% endblock %}

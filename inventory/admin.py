@@ -20,12 +20,30 @@ class CarAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin):
     """
-    Налаштування відображення моделі Product в адмін-панелі.
+    Налаштування відображення моделі Product з підтримкою функціоналу кредиту.
     """
-    list_display = ('name', 'company', 'total_units', "low_threshold", "normal_threshold")
+    # Додаємо allow_credit та credit_units у список
+    list_display = (
+        'name', 
+        'company', 
+        'display_total_units',  # Кастомний метод для підсвітки
+        'credit_units', 
+        'allow_credit', 
+        'low_threshold', 
+        'normal_threshold'
+    )
+    
+    # Дозволяємо вмикати/вимикати кредит прямо у списку товарів
+    list_editable = ('allow_credit',)
+    
     search_fields = ('name', 'company')
-    list_filter = ('company',)
+    list_filter = ('company', 'allow_credit')
     ordering = ('name',)
+
+    # Поле credit_units краще зробити тільки для читання, 
+    # щоб воно змінювалося лише через замовлення та поставки
+    # readonly_fields = ('credit_units',)
+
     fieldsets = (
         (None, {
             'fields': ('name', 'company')
@@ -33,14 +51,36 @@ class ProductAdmin(SimpleHistoryAdmin):
         (_('Залишки на складі'), {
             'fields': ('total_units', 'quantity_per_pallet')
         }),
+        (_('Параметри кредитування'), {
+            'fields': ('allow_credit', 'credit_units'),
+            'description': _("Якщо 'Дозволити кредит' увімкнено, товар можна відвантажувати при нульовому залишку.")
+        }),
+        (_('Рівень наповнюваності'), {
+            'classes': ('collapse',), 
+            'fields': ('low_threshold', 'normal_threshold')
+        }),
         (_('Додаткова інформація'), {
-            'classes': ('collapse',),  # Робить секцію згортаємою
+            'classes': ('collapse',),
             'fields': ('notes',)
         }),
-        (_("Рівень наповнюваності"),{
-            'classes': ('collapse',), 'fields': ('low_threshold', 'normal_threshold')
-        })
     )
+
+    def display_total_units(self, obj):
+        """
+        Відображає залишок. Якщо є кредит (борг), підсвічує кількість червоним.
+        """
+        if obj.credit_units > 0:
+            label = _("Борг")
+            return format_html(
+                '<span style="color: red; font-weight: bold;">{} ({}: {})</span>',
+                obj.total_units,
+                label,
+                obj.credit_units
+            )
+        return obj.total_units
+
+    display_total_units.short_description = _("Залишок (шт.)")
+    display_total_units.admin_order_field = 'total_units'
 
 
 class OrderItemInline(admin.TabularInline):

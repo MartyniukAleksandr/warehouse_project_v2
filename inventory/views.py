@@ -196,7 +196,7 @@ class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     template_name = 'inventory/product_list.html'
     context_object_name = 'products'
-    paginate_by = 10
+    paginate_by = 15
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -442,7 +442,16 @@ OrderItemFormSet = inlineformset_factory(
 @login_required
 def order_create(request):
     from datetime import date
+    import json
     today = date.today()
+    # Підготовка даних про продукти для JavaScript (загальна кількість та кредит)
+    products_data = {
+        p.id: {
+            'stock': p.total_units,
+            'allow_credit': p.allow_credit,
+            'name': p.name
+        } for p in Product.objects.all()
+    }
 
     # Активна зміна потрібна лише для логіки прив'язки та повідомлень про негайне виконання.
     active_shift = WorkShift.objects.filter(is_active=True).first()
@@ -494,7 +503,7 @@ def order_create(request):
                             product = form.cleaned_data['product']
                             ordered_units = form.cleaned_data['ordered_units']
                             # Перевірка, оскільки резервування/списання відбувається одразу
-                            if product.total_units < ordered_units:
+                            if product.total_units < ordered_units and not product.allow_credit:
                                 raise ValueError(
                                     _("Недостатньо товару '{product}' на складі для резервування.").format(
                                         product=product.name))
@@ -522,7 +531,14 @@ def order_create(request):
                             ordered_units = form_data['ordered_units']
 
                             # Зменшення загальної кількості (СПИСАННЯ/РЕЗЕРВУВАННЯ)
-                            product.total_units -= ordered_units
+                            if product.total_units >= ordered_units:
+                                # Звичайне списання/резервування 
+                                product.total_units -= ordered_units
+                            else:
+                                # Логіка кредиту: списуємо все що є, решту — в борг
+                                shortage = ordered_units - product.total_units
+                                product.total_units = 0
+                                product.credit_units += shortage
                             product.save()
 
                             # Створення руху запасу
@@ -569,20 +585,28 @@ def order_create(request):
     context = {
         'order_form': order_form,
         'formset': formset,
+        'products_json': json.dumps(products_data),  # Передаємо дані про продукти у форматі JSON для JavaScript
         'page_title': _("Створити замовлення")
     }
     return render(request, 'inventory/order_form.html', context)
 
-@login_required
 # inventory/views.py
 @login_required
 def order_update(request, pk):
     order = get_object_or_404(Order, pk=pk)
-
+    # Підготовка даних про продукти для JavaScript (загальна кількість та кредит)
+    import json
+    products_data = {
+        p.id: {
+            'stock': p.total_units,
+            'allow_credit': p.allow_credit,
+            'name': p.name
+        } for p in Product.objects.all()
+    }
     if request.method == 'POST':
         if order.is_deleted:
             messages.info(request, _('Це замовлення знаходиться в архіві і не може бути відредаговане.'))
-            return redirect('inventory:product_list')
+            return redirect('inventory:order_list')
 
         if order.status == Order.OrderStatus.SHIPPED:
             messages.error(request, _("Неможливо редагувати замовлення, яке вже було відправлено."))
@@ -591,98 +615,108 @@ def order_update(request, pk):
         order_form = OrderForm(request.POST, instance=order)
         formset = OrderItemFormSet(request.POST, instance=order)
 
-        if order.status == Order.OrderStatus.LOADED:
-            if order_form.is_valid():
-                order_form.save()
-                messages.success(request, _("Інформацію про водія оновлено."))
-                return redirect('inventory:order_list')
+        if order_form.is_valid() and formset.is_valid():
+            # 1. Перевірка на унікальність товарів
+            product_ids = [
+                form.cleaned_data['product'].id
+                for form in formset
+                if form.cleaned_data and not form.cleaned_data.get('DELETE', False)
+            ]
+            if len(product_ids) != len(set(product_ids)):
+                messages.error(request, _("У замовленні не може бути однакових позицій."))
+                return render(request, 'inventory/order_form.html', locals())
 
-        elif order.status == Order.OrderStatus.PENDING:
-            if order_form.is_valid() and formset.is_valid():
-                # 1. Додана перевірка на унікальність товарів
-                product_ids = [
-                    form.cleaned_data['product'].id
-                    for form in formset
-                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False)
-                ]
-                if len(product_ids) != len(set(product_ids)):
-                    messages.error(request,
-                                   _("У замовленні не може бути однакових позицій. Будь ласка, об'єднайте їх."))
-                    context = {
-                        'order_form': order_form,
-                        'formset': formset,
-                        'order': order,
-                        'page_title': _("Перегляд/Редагувати замовлення")
-                    }
-                    return render(request, 'inventory/order_form.html', context)
+            try:
+                with transaction.atomic():
+                    # Отримуємо нові та старі кількості
+                    new_items = {item['product'].id: item['ordered_units'] for item in formset.cleaned_data 
+                                 if item and not item.get('DELETE')}
+                    old_items = {item.product.id: item.ordered_units for item in order.items.all()}
 
-                try:
-                    with transaction.atomic():
-                        # Складна логіка для розрахунку змін на складі
-                        new_items = {item['product'].id: item['ordered_units'] for item in formset.cleaned_data if
-                                     item and not item.get('DELETE')}
-                        old_items = {item.product.id: item.ordered_units for item in order.items.all()}
+                    all_products_ids = set(new_items.keys()) | set(old_items.keys())
+                    products = Product.objects.select_for_update().in_bulk(list(all_products_ids))
 
-                        all_products_ids = set(new_items.keys()) | set(old_items.keys())
-                        products = Product.objects.in_bulk(list(all_products_ids))
+                    for prod_id in all_products_ids:
+                        product = products[prod_id]
+                        # delta: позитивна — замовлення збільшилось (треба списати), 
+                        # негативна — зменшилось (треба повернути)
+                        delta = new_items.get(prod_id, 0) - old_items.get(prod_id, 0)
 
-                        # 1. Перевірка наявності товару перед змінами
-                        for prod_id in all_products_ids:
-                            delta = new_items.get(prod_id, 0) - old_items.get(prod_id, 0)
-                            if delta > 0 and products[prod_id].total_units < delta:
+                        if delta == 0:
+                            continue
+
+                        # --- ПЕРЕВІРКА КРЕДИТУ ПРИ ЗБІЛЬШЕННІ ---
+                        if delta > 0:
+                            # Якщо товару на складі менше ніж дельта І кредит ЗАБОРОНЕНО
+                            if product.total_units < delta and not product.allow_credit:
                                 raise ValueError(
-                                    _("Недостатньо товару '{product}' для збільшення замовлення.").format(
-                                        product=products[prod_id].name))
-                        # 2. Застосування змін до залишків на складі
-                        for prod_id in all_products_ids:
-                            delta = new_items.get(prod_id, 0) - old_items.get(prod_id, 0)
-                            if delta != 0:
-                                products[prod_id].total_units -= delta
-                                products[prod_id].save()
-                                # Створюємо запис у журналі
-                                movement_type = StockMovement.MovementType.ORDER_OUT if delta > 0 else StockMovement.MovementType.ORDER_RETURN
-                                notes_message = _("Редагування замовлення для клієнта: %(customer)s")
-                                formatted_notes = notes_message % {'customer': order.customer}
-                                create_stock_movement(request.user, products[prod_id], -delta, movement_type,
-                                                      order=order,
-                                                      notes=formatted_notes)
-                        # 3. Збереження форм
-                        order_form.save()
-                        formset.save()
+                                    _("Недостатньо товару '{product}' для збільшення замовлення (кредит заборонено).")
+                                    .format(product=product.name)
+                                )
 
-                        messages.success(request, _("Замовлення успішно оновлено."))
-                        return redirect('inventory:order_list')
-                except ValueError as e:
-                    messages.error(request, str(e))
+                            # ЛОГІКА СПИСАННЯ (аналогічно створенню)
+                            if product.total_units >= delta:
+                                product.total_units -= delta
+                            else:
+                                shortage = delta - product.total_units
+                                product.total_units = 0
+                                product.credit_units += shortage
+                        
+                        # --- ЛОГІКА ПОВЕРНЕННЯ ПРИ ЗМЕНШЕННІ (delta < 0) ---
+                        else:
+                            returned_qty = abs(delta)
+                            if product.credit_units > 0:
+                                if returned_qty <= product.credit_units:
+                                    product.credit_units -= returned_qty
+                                else:
+                                    remaining = returned_qty - product.credit_units
+                                    product.credit_units = 0
+                                    product.total_units += remaining
+                            else:
+                                product.total_units += returned_qty
+                        
+                        product.save()
+
+                        # Реєстрація руху
+                        notes_message = _("Редагування замовлення для клієнта: %(customer)s")
+                        formatted_notes = notes_message % {'customer': order.customer}
+                        movement_type = StockMovement.MovementType.ORDER_OUT if delta > 0 else StockMovement.MovementType.ORDER_RETURN
+                        create_stock_movement(
+                            request.user, product, -delta, movement_type, 
+                            order=order, 
+                            notes=formatted_notes
+                        )
+
+                    # Зберігаємо форми
+                    order_form.save()
+                    formset.save()
+                    
+                    messages.success(request, _("Замовлення успішно оновлено."))
+                    return redirect('inventory:order_list')
+
+            except ValueError as e:
+                messages.error(request, str(e))
     else:
-        # GET-запит
         order_form = OrderForm(instance=order)
         formset = OrderItemFormSet(instance=order)
-
-        # Логіка для вимкнення полів
-        if order.status == Order.OrderStatus.SHIPPED:
-            for field in order_form.fields.values():  # Corrected line
-                field.disabled = True
-            for form in formset:
-                for field in form.fields.values():  # Corrected line
+        
+        # Логіка блокування полів для GET запиту
+        if order.status in [Order.OrderStatus.SHIPPED, Order.OrderStatus.LOADED]:
+             for field in order_form.fields.values():
+                 if order.status == Order.OrderStatus.SHIPPED or field.name not in ['driver', 'car']:
                     field.disabled = True
-        elif order.status == Order.OrderStatus.LOADED:
-            order_form.fields['customer'].disabled = True
-            order_form.fields['notes'].disabled = True
-            order_form.fields['delivery_date'].disabled = True
-            for form in formset:
-                # Corrected lines
-                form.fields['product'].disabled = True
-                form.fields['ordered_units'].disabled = True
+             for form in formset:
+                 for field in form.fields.values():
+                     field.disabled = True
 
     context = {
         'order_form': order_form,
         'formset': formset,
         'order': order,
+        'products_json': json.dumps(products_data),  # Передаємо дані про продукти у форматі JSON для JavaScript
         'page_title': _("Перегляд/Редагувати замовлення"),
     }
     return render(request, 'inventory/order_form.html', context)
-
 
 @login_required
 @require_POST
@@ -739,7 +773,20 @@ def cancel_order(request, pk):
             # Повертаємо кожну позицію товару на склад
             for item in order.items.all():
                 product = item.product
-                product.total_units += item.ordered_units
+                # returned_qty = item.ordered_units
+                # --- ЛОГІКА ПОГЕРНЕННЯ З УРАХУВАННЯМ КРЕДИТУ ---
+                if product.credit_units > 0:
+                    if item.ordered_units <= product.credit_units:
+                        # Весь повернутий товар йде на погашення частини боргу
+                        product.credit_units -= item.ordered_units
+                    else:
+                        # Поверненого товару більше, ніж борг
+                        remaining_to_stock = item.ordered_units - product.credit_units
+                        product.credit_units = 0
+                        product.total_units += remaining_to_stock
+                else:
+                    # Боргу немає — просто додаємо до залишку
+                    product.total_units += item.ordered_units
                 product.save()
                 # Створюємо запис у журналі
                 notes_message = _("Скасування замовлення для клієнта: %(customer)s")
@@ -926,7 +973,19 @@ def process_supply(request, pk):
         with transaction.atomic():
             for item in supply.items.all():
                 product = item.product
-                product.total_units += item.quantity
+                incoming_qty = item.quantity
+                if product.credit_units > 0:
+                    if incoming_qty >= product.credit_units:
+                        # Приходу вистачило закрити весь кредит
+                        remaining_after_credit = incoming_qty - product.credit_units
+                        product.credit_units = 0
+                        product.total_units += remaining_after_credit
+                    else:
+                        # Весь прихід пішов на зменшення кредиту, на склад нічого не потрапило
+                        product.credit_units -= incoming_qty
+                else:
+                    # Кредиту немає, просто додаємо на склад
+                    product.total_units += item.quantity
                 product.save()
                 # Передаємо request.user
                 notes_message = _("Постачання від постачальника: %(supplier)s")
@@ -977,12 +1036,12 @@ def export_products_to_pdf(request):
 
     title = _('Звіт по продуктах на складі')
     headers = [
-        _('№'), _('Назва'), _('Фірма'), _('Загальний залишок (шт.)'), _('Примітки')
+        _('№'), _('Назва'), _('Фірма'), _('Загальний залишок (шт.)'), _('Кредит (шт.)'), _('Кількість на палеті') ,  _('Повних палет'), _('Примітки')
     ]
 
     # Використовуємо enumerate для додавання порядкового номера
     data = [
-        [i, p.name, p.company, p.total_units, p.notes or '']
+        [i, p.name, p.company, p.total_units, p.credit_units, p.quantity_per_pallet, p.full_pallets, p.notes or '']
         for i, p in enumerate(products, 1)
     ]
 
