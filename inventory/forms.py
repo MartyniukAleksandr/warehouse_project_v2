@@ -83,16 +83,21 @@ class SupplyForm(forms.ModelForm):
             'supplier': _('Постачальник'),
         }
 
+
 class SupplyItemForm(forms.ModelForm):
     """Форма для позицій постачання."""
     class Meta:
         model = SupplyItem
         fields = ['product', 'quantity']
         widgets = {
-            'product': forms.Select(attrs={'class': 'form-select product-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={
+                'class': 'form-select product-select'
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('шт.')  # Додаємо підказку сюди
+            }),
         }
-
 
 # Оновлена форма для модального вікна
 class DriverInfoForm(forms.ModelForm):

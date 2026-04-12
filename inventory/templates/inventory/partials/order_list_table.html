@@ -2,8 +2,27 @@
 {% if not grouped_orders %}
     <div class="alert alert-info">{% trans "Активних замовлень не знайдено." %}</div>
 {% else %}
+<style>
+    /* Адаптивні стилі */
+    @media (max-width: 768px) {
+        .table td {
+            font-size: 0.8rem;
+            padding: 0.6rem 0.3rem !important;
+        }
+        .col-notes, .col-items {
+            min-width: 140px !important;
+            white-space: normal !important;
+        }
+        /* Зменшуємо кнопки на мобільних, щоб влізли в рядок */
+        .btn-sm {
+            padding: 0.25rem 0.4rem !important;
+            font-size: 0.75rem !important;
+        }
+    }
+    /* Вирівнювання колонок */
+    .table th { white-space: nowrap; }
+</style>
 
-    {# Цикл по датах (з вашого get_context_data) #}
     {% for delivery_date, daily_orders in grouped_orders %}
 
         <h3 class="mt-4 mb-3 border-bottom pb-2">
@@ -34,78 +53,78 @@
                         <tbody>
                             {% for order in daily_orders %}
                             <tr>
-                                <td>{{ page_obj.start_index|add:order.forloop_counter0 }}</td>
+                                {# ВИПРАВЛЕНО: forloop.counter0 замість order.forloop_counter0 #}
+                                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
                                 <td class="fw-bold">{{ order.customer }}</td>
-                                <td>
-                                    <ul class="list-unstyled mb-0 small">
+                                
+                                <td class="col-items" style="min-width: 150px; max-width: 300px;">
+                                    <ul class="list-unstyled mb-0" style="font-size: 0.85rem; line-height: 1.2;">
                                         {% for item in order.items.all %}
-                                        <li>{{ item.product.name }} - <strong>{{ item.ordered_units }}</strong> {% trans "шт." %}</li>
+                                            <li class="text-wrap mb-1">
+                                                <i class="bi bi-caret-right-fill text-primary" style="font-size: 0.7rem;"></i>
+                                                {{ item.product.name }} — <strong>{{ item.ordered_units }}</strong> <span class="text-muted small">{% trans "шт." %}</span>
+                                            </li>
                                         {% empty %}
-                                        <li class="text-muted">{% trans "Немає позицій" %}</li>
+                                            <li class="text-muted small italic">{% trans "Немає позицій" %}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                <td>
+
+                              <td style="min-width: 100px; max-width: 150px;">
                                     {% if order.car %}
-                                        <span class="fw-bold">{{ order.car }}</span>
+                                        {# Клас text-wrap дозволяє переносити довгі назви, small зменшує шрифт #}
+                                        <span class="fw-bold small text-wrap d-block">{{ order.car }}</span>
                                     {% else %}
-                                        <span class="text-muted">–</span>
+                                        <span class="text-muted small">–</span>
                                     {% endif %}
                                 </td>
-                                <td>
+
+                                <td style="min-width: 100px; max-width: 150px;">
                                     {% if order.driver %}
-                                        {{ order.driver }}
+                                        {# d-block та line-height допомагають тексту виглядати акуратно при переносі #}
+                                        <span class="small text-wrap d-block" style="line-height: 1.1;">{{ order.driver }}</span>
                                     {% else %}
-                                        <span class="text-muted">–</span>
+                                        <span class="text-muted small">–</span>
                                     {% endif %}
                                 </td>
-                                {% comment %} <td><span class="small text-muted">{{ order.notes|linebreaksbr|default:"-" }}</span></td> {% endcomment %}
-                                <td> 
-                                    <div class="small text-muted" style="max-width: 300px; max-height: 100px; overflow-y: auto;">
-                                        {% if order.notes %}
-                                            {{ order.notes|linebreaksbr}}
-                                        {% else %}
-                                            -
-                                        {% endif %}
+
+                                <td class="col-notes" style="min-width: 140px; max-width: 250px;">
+                                    <div class="small text-muted text-break" style="line-height: 1.2; white-space: normal;">
+                                        {{ order.notes|linebreaksbr|default:"-" }}
                                     </div>
-                                </td> 
+                                </td>
+
                                 <td>
-                                    {% if order.status == 'SHIPPED' %}<span class="badge bg-success">{{ order.get_status_display }}</span>
-                                    {% elif order.status == 'PENDING' %}<span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
-                                    {% elif order.status == 'LOADED' %}<span class="badge bg-info">{{ order.get_status_display }}</span>
-                                    {% elif order.status == 'DOCUMENTS' %}<span class="badge bg-primary">{{ order.get_status_display }}</span>
-                                    {% elif order.status == 'CANCELLED' %}<span class="badge bg-danger">{{ order.get_status_display }}</span>
-                                    {% else %}<span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                    {% if order.status == 'SHIPPED' %}<span class="badge bg-success small">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'PENDING' %}<span class="badge bg-warning text-dark small">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'LOADED' %}<span class="badge bg-info small">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'DOCUMENTS' %}<span class="badge bg-primary small">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'CANCELLED' %}<span class="badge bg-danger small">{{ order.get_status_display }}</span>
+                                    {% else %}<span class="badge bg-secondary small">{{ order.get_status_display }}</span>
                                     {% endif %}
                                 </td>
+
                                 <td>
                                     {% if active_shift %}
-                                    <div class="d-flex gap-1 flex-nowrap">
+                                    <div class="d-flex gap-1 flex-nowrap align-items-center">
                                         {% if order.status == 'PENDING' %}
-                                            <form action="{% url 'inventory:order_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-info" title='{% trans "Готове/Завантажено" %}'><i class="bi bi-box-arrow-up"></i></button></form>
-                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Редагувати" %}'><i class="bi bi-pencil-fill"></i></a>
-                                            <form action="{% url 'inventory:order_cancel' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning" title='{% trans "Скасувати замовлення" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-x-circle"></i></button></form>
+                                            <form action="{% url 'inventory:order_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-info" title='{% trans "Завантажено" %}'><i class="bi bi-box-arrow-up"></i></button></form>
+                                            <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Ред." %}'><i class="bi bi-pencil-fill"></i></a>
+                                            <form action="{% url 'inventory:order_cancel' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning" title='{% trans "Скасувати" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-x-circle"></i></button></form>
+                                        
                                         {% elif order.status == 'LOADED' %}
-                                            <form action="{% url 'inventory:order_documents' order.pk %}" method="post" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-primary" title='{% trans "Оформити документи" %}'>
-                                                    <i class="bi bi-file-earmark-text"></i>
-                                                </button>
-                                            </form>
-                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-danger" title='{% trans "Повернути в очікування" %}'>
-                                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                                </button>
-                                            </form>
+                                            <form action="{% url 'inventory:order_documents' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-primary" title='{% trans "Документи" %}'><i class="bi bi-file-earmark-text"></i></button></form>
+                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Повернути" %}'><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                        
                                         {% elif order.status == 'DOCUMENTS' %}
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#driverModal" 
                                                     data-order-id="{{ order.pk }}" data-order-customer="{{ order.customer }}"
                                                     data-driver-id="{{ order.driver.pk|default_if_none:'' }}" data-car-id="{{ order.car.pk|default_if_none:'' }}"
                                                     data-action-url="{% url 'inventory:order_ship' pk=order.pk %}" title='{% trans "Відправити" %}'><i class="bi bi-truck"></i></button>
-                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Відхилити завантаження" %}'><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                            <form action="{% url 'inventory:order_reject_load' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Відхилити" %}'><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                        
                                         {% elif order.status == 'CANCELLED' %}
-                                            <form action="{% url 'inventory:delete_cancelled_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Видалити назавжди" %}' onclick="return confirm('{% trans "Ви впевнені?" %}')"><i class="bi bi-trash-fill"></i></button></form>
+                                            <form action="{% url 'inventory:delete_cancelled_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title='{% trans "Видалити" %}' onclick="return confirm('{% trans "Видалити назавжди?" %}')"><i class="bi bi-trash-fill"></i></button></form>
                                         {% else %}
                                             <a href="{% url 'inventory:order_edit' order.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Переглянути" %}'><i class="bi bi-eye-fill"></i></a>
                                             <form action="{% url 'inventory:soft_delete_order' order.pk %}" method="post" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-secondary" title='{% trans "Архів" %}' onclick="return confirm('{% trans "Заархівувати?" %}')"><i class="bi bi-archive-fill"></i></button></form>
@@ -122,48 +141,24 @@
         </div>
     {% endfor %}
 
-    {# ПАГІНАЦІЯ ДЛЯ HTMX #}
-{% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% with q=request.GET.q|default:'' d_filter=request.GET.delivery_date_filter|default:'' %}
-            
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <button class="page-link" 
-                       hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                       hx-target="#order-results"
-                       hx-push-url="true"
-                       hx-indicator="#main-spinner"
-                       onclick="document.getElementById('current-page-input').value = '{{ page_obj.previous_page_number }}'">
-                       &laquo;
-                    </button>
-                </li>
-            {% endif %}
-
-            <li class="page-item disabled">
-                <span class="page-link text-dark fw-bold">
-                    {% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-                </span>
-            </li>
-
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    {# Міняємо <a> на <button>, щоб уникнути конфліктів з href #}
-                    <button class="page-link" 
-                       hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}"
-                       hx-target="#order-results"
-                       hx-push-url="true"
-                       hx-indicator="#main-spinner"
-                       onclick="document.getElementById('current-page-input').value = '{{ page_obj.next_page_number }}'">
-                       &raquo;
-                    </button>
-                </li>
-            {% endif %}
-
-        {% endwith %}
-    </ul>
-</nav>
-{% endif %}
-
+    {# ПАГІНАЦІЯ (Без змін, логіка вірна) #}
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% with q=request.GET.q|default:'' d_filter=request.GET.delivery_date_filter|default:'' %}
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <button class="page-link" hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}" hx-target="#order-results" hx-push-url="true" hx-indicator="#main-spinner" onclick="document.getElementById('current-page-input').value = '{{ page_obj.previous_page_number }}'">&laquo;</button>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link text-dark fw-bold">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <button class="page-link" hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&delivery_date_filter={{ d_filter }}" hx-target="#order-results" hx-push-url="true" hx-indicator="#main-spinner" onclick="document.getElementById('current-page-input').value = '{{ page_obj.next_page_number }}'">&raquo;</button>
+                    </li>
+                {% endif %}
+            {% endwith %}
+        </ul>
+    </nav>
+    {% endif %}
 {% endif %}

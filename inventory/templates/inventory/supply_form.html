@@ -4,65 +4,112 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<h2>{{ page_title }}</h2>
-<form method="post">
-    {% csrf_token %}
-    <div class="card">
-        <div class="card-header">{% trans "Інформація про постачальника" %}</div>
-        <div class="card-body">
-            {{ form.as_p }}
-        </div>
-    </div>
-
-    <div class="card mt-4">
-        <div class="card-header">{% trans "Позиції постачання" %}</div>
-        <div class="card-body">
-            {{ formset.management_form }}
-            <div id="item-forms-container">
-                {% for item_form in formset %}
-                <div class="row item-form align-items-center mb-2">
-                    <div class="col-md-6">{{ item_form.product }}</div>
-                    <div class="col-md-4">{{ item_form.quantity }}</div>
-                    <div class="col-md-2">
-                        {% if item_form.instance.pk and formset.can_delete %}
-                        <div class="form-check">
-                            {{ item_form.DELETE }}
-                            <label class="form-check-label" for="{{ item_form.DELETE.id_for_label }}">{% trans "Видалити" %}</label>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="d-none">{{ item_form.id }}</div>
-                </div>
-                {% endfor %}
+<div class="container-fluid px-2 px-md-4">
+    <h2 class="mb-4">{{ page_title }}</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">{% trans "Інформація про постачальника" %}</h5>
             </div>
-            <button type="button" id="add-form-btn" class="btn btn-outline-success btn-sm mt-2">
-                <i class="bi bi-plus-circle"></i> {% trans "Додати позицію" %}
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        {{ form.as_p }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Позиції постачання" %}</h5>
+            </div>
+            <div class="card-body p-2 p-md-3">
+                {{ formset.management_form }}
+                <div id="item-forms-container">
+                    {% for item_form in formset %}
+                    <div class="item-form border rounded p-3 mb-3 bg-white shadow-sm position-relative">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label d-md-none fw-bold">{% trans "Товар" %}</label>
+                                {{ item_form.product }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label d-md-none fw-bold">{% trans "Кількість" %}</label>
+                                {{ item_form.quantity }}
+                            </div>
+                            <div class="col-12 col-md-2 d-flex align-items-end justify-content-md-center">
+                                {% if item_form.instance.pk and formset.can_delete %}
+                                <div class="form-check form-switch mt-2 mt-md-0 text-danger">
+                                    {{ item_form.DELETE }}
+                                    <label class="form-check-label" for="{{ item_form.DELETE.id_for_label }}">
+                                        {% trans "Видалити" %}
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-none">{{ item_form.id }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid gap-2 d-md-block mt-3">
+                    <button type="button" id="add-form-btn" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle"></i> {% trans "Додати позицію" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 mb-5 d-grid gap-2 d-md-flex justify-content-md-start">
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-lg"></i> {% trans "Зберегти" %}
+            </button>
+            <a href="{% url 'inventory:supply_list' %}" class="btn btn-secondary px-4">
+                {% trans "Скасувати" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+<div id="empty-form" class="item-form border rounded p-3 mb-3 bg-light d-none shadow-sm">
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <label class="form-label d-md-none fw-bold">{% trans "Товар" %}</label>
+            {{ formset.empty_form.product }}
+        </div>
+        <div class="col-12 col-md-4">
+            <label class="form-label d-md-none fw-bold">{% trans "Кількість" %}</label>
+            {{ formset.empty_form.quantity }}
+        </div>
+        <div class="col-12 col-md-2 d-flex align-items-end justify-content-md-center">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-form-btn w-100">
+                <i class="bi bi-trash"></i> {% trans "Видалити" %}
             </button>
         </div>
     </div>
-
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">{% trans "Зберегти постачання" %}</button>
-        <a href="{% url 'inventory:supply_list' %}" class="btn btn-secondary">{% trans "Скасувати" %}</a>
-    </div>
-</form>
-
-<!-- Шаблон для нової форми, прихований -->
-<div id="empty-form" class="row item-form align-items-center mb-2 d-none">
-    <div class="col-md-6">{{ formset.empty_form.product }}</div>
-    <div class="col-md-4">{{ formset.empty_form.quantity }}</div>
-    <div class="col-md-2">
-        <button type="button" class="btn btn-danger btn-sm remove-form-btn">{% trans "Видалити" %}</button>
-    </div>
 </div>
+
+<style>
+    /* Покращення відображення для мобільних */
+    @media (max-width: 767.98px) {
+        .item-form {
+            border-left: 4px solid #198754 !important; /* Зелена лінія збоку для візуального розділення */
+        }
+        .select2-container--bootstrap-5 {
+            margin-bottom: 5px;
+        }
+        .btn {
+            padding: 12px; /* Більші кнопки для зручного натискання пальцем */
+        }
+    }
+</style>
 {% endblock %}
-{% comment %}
-    Цей шаблон відповідає за створення та редагування постачання.
-    Він включає в себе:
-    - Форма для основної інформації про постачання (постачальник, дата, примітки)
-    - Динамічний набір форм для позицій постачання (товар + кількість)
-    - Кнопки для додавання нових позицій та видалення існуючих
-{% endcomment %}
+
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -76,15 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
     const emptyFormTemplate = document.getElementById('empty-form');
 
-    /**
-     * Функція для активації пошуку Select2
-     */
     function initSelect2(element) {
-        // Якщо на елементі вже був Select2 (наприклад, при помилках валідації), знищуємо старий
         if ($(element).hasClass("select2-hidden-accessible")) {
             $(element).select2('destroy');
         }
-
         $(element).select2({
             theme: 'bootstrap-5',
             width: '100%',
@@ -94,55 +136,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Ініціалізація для полів, які вже завантажені на сторінці
-     */
     $('select[id$="-product"]').each(function() {
         initSelect2(this);
     });
 
-    // --- Обробник додавання нової позиції ---
     if (addFormBtn) {
         addFormBtn.addEventListener('click', function() {
             let formNum = parseInt(totalForms.value);
-            
-            // Клонуємо прихований шаблон
             const newForm = emptyFormTemplate.cloneNode(true);
             newForm.removeAttribute('id');
             newForm.classList.remove('d-none');
 
-            // --- ОЧИЩЕННЯ ВІД БАГІВ КЛОНУВАННЯ ---
-            // Видаляємо всі контейнери Select2, які могли бути в шаблоні
             $(newForm).find('.select2-container').remove();
             $(newForm).find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id').show();
 
-            // Заміна префікса __prefix__ на реальний номер
             newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formNum);
-
             formsContainer.append(newForm);
 
-            // Активація пошуку в новому рядку
             const newSelect = newForm.querySelector('select[id$="-product"]');
             if (newSelect) {
                 initSelect2(newSelect);
             }
-
-            // Оновлюємо лічильник форм для Django
             totalForms.value = formNum + 1;
         });
     }
 
-    // --- Обробник видалення позиції ---
     formsContainer.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('remove-form-btn')) {
-            const formToRemove = e.target.closest('.item-form');
+        if (e.target && (e.target.classList.contains('remove-form-btn') || e.target.closest('.remove-form-btn'))) {
+            const btn = e.target.classList.contains('remove-form-btn') ? e.target : e.target.closest('.remove-form-btn');
+            const formToRemove = btn.closest('.item-form');
             if (formToRemove) {
-                // Знищуємо Select2 перед видаленням
                 $(formToRemove).find('select').select2('destroy');
                 formToRemove.remove();
-                
-                // Після видалення ми НЕ зменшуємо TOTAL_FORMS вручну (Django сам це обробить),
-                // але важливо, щоб індекси залишалися унікальними.
             }
         }
     });

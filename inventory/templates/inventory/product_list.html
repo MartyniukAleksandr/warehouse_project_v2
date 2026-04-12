@@ -4,6 +4,85 @@
 {% block title %}{% trans "Список Продуктів" %}{% endblock %}
 
 {% block content %}
+<style>
+    /* CSS для адаптації таблиці під мобільні пристрої (картковий вигляд) */
+    @media (max-width: 767.98px) {
+        .mobile-responsive-table thead {
+            display: none;
+        }
+        .mobile-responsive-table, 
+        .mobile-responsive-table tbody, 
+        .mobile-responsive-table tr, 
+        .mobile-responsive-table td {
+            display: block;
+            width: 100%;
+        }
+        .mobile-responsive-table tr {
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem; /* Трохи більші заокруглення для карток */
+            background-color: #fff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .mobile-responsive-table td {
+            text-align: right;
+            padding-left: 50% !important;
+            position: relative;
+            border-bottom: 1px solid #f8f9fa;
+            min-height: 2.5rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .mobile-responsive-table td:last-child {
+            border-bottom: none;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            background-color: #f8f9fa; /* Виділення зони кнопок на мобільному */
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .mobile-responsive-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 15px;
+            width: calc(50% - 20px);
+            text-align: left;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            color: #495057;
+        }
+        .mobile-responsive-table tfoot {
+            display: block;
+        }
+        .mobile-responsive-table tfoot tr {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
+        .mobile-responsive-table tfoot td {
+            text-align: center;
+            padding: 10px 0 !important;
+            display: block;
+        }
+        .mobile-responsive-table tfoot td::before {
+            display: none;
+        }
+    }
+
+    /* Нові стилі для кнопок дій */
+    .action-btn {
+        transition: all 0.2s ease-in-out;
+        border-color: #e9ecef;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
+        background-color: #fff;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h2 class="mb-0"><i class="bi bi-boxes"></i> {% trans "Продукти на складі" %}</h2>
     <div class="d-flex align-items-center gap-2">
@@ -11,23 +90,20 @@
         <a href="{% url 'inventory:product_add' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">{% trans "Додати продукт" %}</span></a>
     </div>
 </div>
-<!-- ... (форма пошуку) та легенда... -->
+
 <div class="mb-3">
-    <form method="get" class="d-flex" role="search">
-        <input class="form-control me-2" type="search" placeholder="{% trans 'Пошук за назвою або фірмою...' %}" aria-label="Search" name="q" value="{{ request.GET.q|default_if_none:'' }}">
+    <form method="get" class="d-flex flex-wrap gap-2" role="search">
+        <input class="form-control flex-grow-1" style="min-width: 200px;" type="search" placeholder="{% trans 'Пошук за назвою або фірмою...' %}" aria-label="Search" name="q" value="{{ request.GET.q|default_if_none:'' }}">
         <button class="btn btn-outline-primary" type="submit">{% trans "Пошук" %}</button>
-        <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-secondary ms-2">{% trans "Очистити" %}</a>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-secondary">{% trans "Очистити" %}</a>
     </form>
 </div>
-
-
 
 <div class="mb-3">
     <span class="badge bg-success">{% trans "В нормі" %}</span>
     <span class="badge bg-warning text-dark">{% trans "Середній рівень" %}</span>
     <span class="badge bg-danger">{% trans "Низький рівень" %}</span>
 </div>
-<!-- ... (форма пошуку) та легенда кінець... -->
 
 {% if not products %}
     <div class="alert alert-info">{% trans "Продуктів не знайдено." %}</div>
@@ -35,9 +111,9 @@
 <form action="{% url 'inventory:product_delete_selected' %}" method="post" id="products-form">
     {% csrf_token %}
     <div class="card">
-        <div class="card-body">
+        <div class="card-body p-0 p-md-3">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0 mobile-responsive-table">
                     <thead class="table-light">
                         <tr>
                             <th style="width: 5%;"><input type="checkbox" id="select-all" class="form-check-input"></th>
@@ -48,17 +124,19 @@
                             <th>{% trans "Повних палет" %}</th>
                             <th>{% trans "Кількість на палеті" %}</th>
                             <th>{% trans "Примітки" %}</th>
-                            <th style="width: 10%;">{% trans "Дії" %}</th>
+                            <th>{% trans "Дії" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in products %}
                         <tr class="{{ product.level_class }}">
-                            <td><input type="checkbox" name="product_ids" value="{{ product.pk }}" class="form-check-input product-checkbox"></td>
-                            <td>{{ product.name }}</td>
-                            <td>{{ product.company }}</td>
-                            <td><strong>{{ product.total_units }}</strong></td>
-                            <td>
+                            <td data-label="{% trans 'Оберіть' %}">
+                                <input type="checkbox" name="product_ids" value="{{ product.pk }}" class="form-check-input product-checkbox">
+                            </td>
+                            <td data-label="{% trans 'Назва' %}">{{ product.name }}</td>
+                            <td data-label="{% trans 'Фірма' %}">{{ product.company }}</td>
+                            <td data-label="{% trans 'Загальний залишок (шт.)' %}"><strong>{{ product.total_units }}</strong></td>
+                            <td data-label="{% trans 'Кредит (борг) шт.' %}">
                                 {% if product.credit_units > 0 %}
                                     <span class="badge bg-white text-danger border border-danger">
                                         <i class="bi bi-exclamation-triangle-fill"></i> {{ product.credit_units }}
@@ -67,28 +145,32 @@
                                     <span class="text-muted small">0</span>
                                 {% endif %}
                             </td>
-                             {# Додано колонку "Повних палет" #}
-                            <td>{{ product.full_pallets }}</td>
-                            <td>{{ product.quantity_per_pallet }}</td>
-                            {# Додано відображення приміток #}
-                            <td>{{ product.notes|linebreaksbr|default:"-" }}</td>
-                            <td>
-                                <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-outline-secondary" title='{% trans "Редагувати" %}'>
-                                    <i class="bi bi-pencil-fill"></i>
-                                </a>
-                                {# Нова кнопка для перегляду історії #}
-                                <a href="{% url 'inventory:product_history' product.pk %}" class="btn btn-sm btn-outline-info" title='{% trans "Історія руху" %}'>
-                                    <i class="bi bi-list-ol"></i>
-                                </a>
+                            <td data-label="{% trans 'Повних палет' %}">{{ product.full_pallets }}</td>
+                            <td data-label="{% trans 'Кількість на палеті' %}">{{ product.quantity_per_pallet }}</td>
+                            <td data-label="{% trans 'Примітки' %}">{{ product.notes|linebreaksbr|default:"-" }}</td>
+                            
+                            {# --- ОНОВЛЕНИЙ БЛОК КНОПОК --- #}
+                            <td data-label="{% trans 'Дії' %}">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-light text-primary rounded-pill px-3 shadow-sm action-btn" title='{% trans "Редагувати" %}'>
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span class="d-none d-xl-inline ms-1">{% trans "Редагувати" %}</span>
+                                    </a>
+                                    <a href="{% url 'inventory:product_history' product.pk %}" class="btn btn-sm btn-light text-info rounded-pill px-3 shadow-sm action-btn" title='{% trans "Історія руху" %}'>
+                                        <i class="bi bi-clock-history"></i>
+                                        <span class="d-none d-xl-inline ms-1">{% trans "Історія" %}</span>
+                                    </a>
+                                </div>
                             </td>
+                            {# ---------------------------- #}
+                            
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot class="table-group-divider">
                         <tr>
-                            {# Оновлено colspan #}
                             <td colspan="5" class="text-end"><strong>{% trans "Всього одиниць на складі (загалом):" %}</strong></td>
-                            <td colspan="2"><strong>{{ grand_total_units }}</strong></td>
+                            <td colspan="4" class="text-start"><strong>{{ grand_total_units }}</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -96,21 +178,27 @@
         </div>
     </div>
     <div class="mt-4 mb-5">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('{% trans "Ви впевнені, що хочете видалити обрані продукти?" %}');">
+        <button type="submit" class="btn btn-danger w-100 w-md-auto" onclick="return confirm('{% trans "Ви впевнені, що хочете видалити обрані продукти?" %}');">
             <i class="bi bi-trash-fill"></i> {% trans "Видалити обрані" %}
         </button>
     </div>
 </form>
 {% endif %}
 
-<!-- Pagination block -->
 {% if is_paginated %}
 <nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center flex-wrap">
         {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page=1&q={{ search_query }}">&laquo;&laquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}">&laquo;</a></li>{% endif %}
         <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}.</span></li>
         {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}">&raquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ search_query }}">&raquo;&raquo;</a></li>{% endif %}
     </ul>
 </nav>
 {% endif %}
+
+<script>
+    document.getElementById('select-all')?.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.product-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+</script>
 {% endblock %}

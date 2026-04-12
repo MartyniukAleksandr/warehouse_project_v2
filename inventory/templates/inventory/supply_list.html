@@ -4,81 +4,111 @@
 {% block title %}{% trans "Список Постачань" %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="bi bi-truck"></i> {% trans "Постачання на склад" %}</h2>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <h2><i class="bi bi-truck text-primary"></i> {% trans "Постачання на склад" %}</h2>
     <a href="{% url 'inventory:supply_add' %}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> {% trans "Створити постачання" %}
     </a>
 </div>
-<div class="mb-3">
-    <form method="get" class="d-flex" role="search">
-        <input class="form-control me-2" type="search" placeholder="{% trans 'Пошук по постачальнику або товару...' %}" aria-label="Search" name="q" value="{{ request.GET.q|default_if_none:'' }}">
-        <button class="btn btn-outline-primary" type="submit">{% trans "Пошук" %}</button>
-        <a href="{% url 'inventory:supply_list' %}" class="btn btn-outline-secondary ms-2">{% trans "Очистити" %}</a>
-    </form>
+
+{# --- ПОШУК --- #}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2" role="search">
+            <div class="col-12 col-md-8">
+                <input class="form-control" type="search" 
+                       placeholder="{% trans 'Пошук по постачальнику або товару...' %}" 
+                       name="q" value="{{ request.GET.q|default:'' }}">
+            </div>
+            <div class="col-6 col-md-2">
+                <button class="btn btn-outline-primary w-100" type="submit">
+                    <i class="bi bi-search"></i> {% trans "Пошук" %}
+                </button>
+            </div>
+            <div class="col-6 col-md-2">
+                <a href="{% url 'inventory:supply_list' %}" class="btn btn-outline-secondary w-100">
+                    {% trans "Очистити" %}
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 
 {% if not supplies %}
-    <div class="alert alert-info">{% trans "Ще немає жодного постачання." %}</div>
+    <div class="alert alert-info shadow-sm">
+        <i class="bi bi-info-circle me-2"></i>{% trans "Ще немає жодного постачання або нічого не знайдено." %}
+    </div>
 {% else %}
-<div class="card">
-    <div class="card-body">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>{% trans "№" %}</th>
-                        <th>{% trans "Постачальник" %}</th>
-                        <th>{% trans "Позиції" %}</th>
-                        <th>{% trans "Всього (шт.)" %}</th>
-                        <th> {% trans "Дата" %}</th>
-                        <th>{% trans "Статус" %}</th>
-                        <th>{% trans "Дії" %}</th>
+                        <th style="width: 50px;">{% trans "№" %}</th>
+                        <th style="min-width: 150px;">{% trans "Постачальник" %}</th>
+                        <th style="min-width: 200px;">{% trans "Позиції" %}</th>
+                        <th class="text-center">{% trans "Шт." %}</th>
+                        <th style="min-width: 120px;">{% trans "Дата" %}</th>
+                        <th class="text-center">{% trans "Статус" %}</th>
+                        <th class="text-center" style="min-width: 160px;">{% trans "Дії" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for supply in supplies %}
                     <tr>
-                        <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
-                        <td>{{ supply.supplier }}</td>
+                        <td class="text-muted small">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                        <td class="fw-bold">{{ supply.supplier }}</td>
                         <td>
-                            <ul class="list-unstyled mb-0">
+                            <ul class="list-unstyled mb-0 small">
                                 {% for item in supply.items.all %}
-                                <li>{{ item.product.name }} - {{ item.quantity }} {% trans "шт." %}</li>
+                                <li class="text-wrap">
+                                    <i class="bi bi-dot text-primary"></i>
+                                    {{ item.product.name }} — <strong>{{ item.quantity }}</strong>
+                                </li>
                                 {% empty %}
-                                <li>{% trans "Немає позицій" %}</li>
+                                <li class="text-muted small">{% trans "Немає позицій" %}</li>
                                 {% endfor %}
                             </ul>
                         </td>
-                        <td><strong>{{ supply.total_units }}</strong></td>
-                        <td>{{ supply.created_at }}</td>
-                        <td>
+                        <td class="text-center"><strong>{{ supply.total_units }}</strong></td>
+                        <td class="small">
+                            {{ supply.created_at|date:"d.m.Y" }}<br>
+                            <span class="text-muted">{{ supply.created_at|date:"H:i" }}</span>
+                        </td>
+                        <td class="text-center">
                             {% if supply.status == 'COMPLETED' %}
-                                <span class="badge bg-success">{{ supply.get_status_display }}</span>
+                                <span class="badge rounded-pill bg-success-subtle text-success border border-success">
+                                    <i class="bi bi-check-all"></i> {{ supply.get_status_display }}
+                                </span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">{{ supply.get_status_display }}</span>
+                                <span class="badge rounded-pill bg-warning-subtle text-dark border border-warning">
+                                    <i class="bi bi-clock-history"></i> {{ supply.get_status_display }}
+                                </span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="text-center">
                             {% if supply.status == 'PENDING' %}
-                            <div class="d-flex flex-column gap-2">
-                                {# Кнопка "Прийняти на склад" #}
-                                <form action="{% url 'inventory:supply_process' supply.pk %}" method="post" class="d-inline">
+                            <div class="d-grid gap-1">
+                                {# Кнопка "Прийняти" #}
+                                <form action="{% url 'inventory:supply_process' supply.pk %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success w-100" onclick="return confirm('{% trans "Ви впевнені, що хочете прийняти це постачання? Залишки на складі будуть оновлені." %}')">
-                                        <i class="bi bi-check-circle"></i> {% trans "Прийняти на склад" %}
+                                    <button type="submit" class="btn btn-sm btn-success w-100" 
+                                            onclick="return confirm('{% trans "Прийняти постачання? Товар додасться до залишків." %}')">
+                                        <i class="bi bi-box-arrow-in-down"></i> {% trans "Прийняти" %}
                                     </button>
                                 </form>
                                 {# Кнопка "Видалити" #}
-                                <form action="{% url 'inventory:supply_delete' supply.pk %}" method="post" class="d-inline">
+                                <form action="{% url 'inventory:supply_delete' supply.pk %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-danger w-100" onclick="return confirm('{% trans "Ви впевнені, що хочете видалити це постачання? Це дія незворотна." %}')">
-                                        <i class="bi bi-trash"></i> {% trans "Видалити" %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100" 
+                                            onclick="return confirm('{% trans "Видалити це постачання?" %}')">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
                             </div>
                             {% else %}
-                                -
+                                <span class="text-muted small"><i class="bi bi-lock-fill"></i></span>
                             {% endif %}
                         </td>
                     </tr>
@@ -89,12 +119,26 @@
     </div>
 </div>
 {% endif %}
+
+{# --- ПАГІНАЦІЯ (з урахуванням пошуку) --- #}
 {% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-4">
+<nav class="mt-4">
     <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page=1&q={{ search_query }}">&laquo;&laquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}">&laquo;</a></li>{% endif %}
-        <li class="page-item disabled"><span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}.</span></li>
-        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}">&raquo;</a></li><li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ search_query }}">&raquo;&raquo;</a></li>{% endif %}
+        {% with q=request.GET.q|default:'' %}
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&q={{ q }}">&laquo;&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}">&laquo;</a></li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}">&raquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}">&raquo;&raquo;</a></li>
+            {% endif %}
+        {% endwith %}
     </ul>
 </nav>
 {% endif %}

@@ -37,11 +37,11 @@ msgstr "pal."
 msgid "Оформити документи"
 msgstr "Wystawić dokumenty"
 
-msgid "Велика (100*120)"
-msgstr "Duża (100*120)"
+msgid "Велика"
+msgstr "Duża"
 
-msgid "Мала (100*80)"
-msgstr "Mała (100*80)"
+msgid "Мала"
+msgstr "Mała"
 
 msgid "Тип палети"
 msgstr "Typ palety"
@@ -49,8 +49,14 @@ msgstr "Typ palety"
 msgid "Без палет"
 msgstr "Bez palet"
 
-msgid "--Палетна інформація--"
-msgstr "--Informacja o paletach--"
+msgid "Система складського обліку"
+msgstr "System ewidencji magazynowej"
+
+msgid "Оберіть"
+msgstr "Wybierz"
+
+msgid "Історія"
+msgstr "Historia"
 
 msgid "Документи"
 msgstr "Dokumenty"
@@ -120,6 +126,15 @@ msgstr "Dług"
 
 msgid "Залишок (шт.)"
 msgstr "Saldo (szt.)"
+
+msgid "Введіть кількість та вміст палети для авторозрахунку штук."
+msgstr "Wprowadź ilość i zawartość palety w celu automatycznego przeliczenia sztuk."
+
+msgid "Ваш коментар пишіть зверху. Дані про палети будуть додані автоматично під лінією."
+msgstr "Wpisz swój komentarz powyżej. Dane o paletach zostaną dodane automatycznie poniżej linii."
+
+msgid "Видалити назавжди?"
+msgstr "Usunąć na stałe?"
 
 
 #: .\inventory\admin.py:33

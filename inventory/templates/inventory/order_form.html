@@ -55,6 +55,9 @@
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">{{ order_form.notes.label }}</label>
                     {{ order_form.notes }}
+                    <div class="form-text text-muted">
+                        <small>{% trans "Ваш коментар пишіть зверху. Дані про палети будуть додані автоматично під лінією." %}</small>
+                    </div>
                 </div>
             </div>
             
@@ -98,8 +101,8 @@
                                 <label class="small text-muted mb-1">{% trans "Тип палети" %}</label>
                                 <select class="form-select form-select-sm pallet-input pallet-type">
                                     <option value="">{% trans "Без палет" %}</option>
-                                    <option value="{% trans 'Велика (100*120)' %}">{% trans "Велика (100*120)" %}</option>
-                                    <option value="{% trans 'Мала (100*80)' %}">{% trans "Мала (100*80)" %}</option>
+                                    <option value="{% trans 'Велика' %}">{% trans "Велика" %}</option>
+                                    <option value="{% trans 'Мала' %}">{% trans "Мала" %}</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -109,6 +112,12 @@
                             <div class="col-md-4">
                                 <label class="small text-muted mb-1">{% trans "Кількість на палеті" %}</label>
                                 <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-units" placeholder="0">
+                            </div>
+                            <div class="col-12 mt-2 border-top pt-1">
+                                <small class="text-primary" style="font-size: 0.8rem;">
+                                    <i class="bi bi-calculator-fill"></i> 
+                                    {% trans "Введіть кількість та вміст палети для авторозрахунку штук." %}
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -157,8 +166,8 @@
                     <label class="small text-muted mb-1">{% trans "Тип палети" %}</label>
                     <select class="form-select form-select-sm pallet-input pallet-type">
                         <option value="">{% trans "Без палет" %}</option>
-                        <option value="{% trans 'Велика (100*120)' %}">{% trans "Велика (100*120)" %}</option>
-                        <option value="{% trans 'Мала (100*80)' %}">{% trans "Мала (100*80)" %}</option>
+                        <option value="{% trans 'Велика' %}">{% trans "Велика" %}</option>
+                        <option value="{% trans 'Мала' %}">{% trans "Мала" %}</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -168,6 +177,12 @@
                 <div class="col-md-4">
                     <label class="small text-muted mb-1">{% trans "Кількість на палеті" %}</label>
                     <input type="number" min="0" class="form-control form-control-sm pallet-input pallet-units" placeholder="0">
+                </div>
+                <div class="col-12 mt-2 border-top pt-1">
+                    <small class="text-primary" style="font-size: 0.8rem;">
+                        <i class="bi bi-calculator-fill"></i> 
+                        {% trans "Введіть кількість та вміст палети для авторозрахунку штук." %}
+                    </small>
                 </div>
             </div>
         </div>
@@ -184,15 +199,12 @@
 
 <script>
 $(document).ready(function() {
-    // Дані про товари з Django (мають передаватися через контекст view як products_json)
     const productsInfo = {{ products_json|safe }};
-
     const totalForms = $('#id_items-TOTAL_FORMS');
     const container = $('#item-forms-container');
     const emptyFormHtml = $('#empty-form').html();
 
     const i18n = {
-        notesHeader: "{% trans '--Палетна інформація--' %}",
         pcs: "{% trans 'пал.' %}",
         per: "{% trans 'по' %}",
         units: "{% trans 'шт.' %}",
@@ -206,7 +218,6 @@ $(document).ready(function() {
         creditForbidden: "{% trans 'Кредит ЗАБОРОНЕНО' %}"
     };
 
-    // Функція перевірки залишків
     function checkStock(row) {
         const productSelect = row.find('select[id$="-product"]');
         const qtyInput = row.find('input[id$="-ordered_units"]');
@@ -238,6 +249,17 @@ $(document).ready(function() {
         }
     }
 
+    function calculateTotalUnits(row) {
+        const pCount = parseFloat(row.find('.pallet-count').val()) || 0;
+        const pUnits = parseFloat(row.find('.pallet-units').val()) || 0;
+        const qtyInput = row.find('input[id$="-ordered_units"]');
+
+        if (pCount > 0 && pUnits > 0) {
+            qtyInput.val(pCount * pUnits);
+            checkStock(row);
+        }
+    }
+
     function applySelect2(selector, placeholderText) {
         $(selector).select2({
             theme: 'bootstrap-5',
@@ -247,24 +269,23 @@ $(document).ready(function() {
         });
     }
 
-    // Ініціалізація головних полів
     applySelect2('select[id$="driver"]', i18n.searchDriver);
     applySelect2('select[id$="car"]', i18n.searchCar);
     
-    // Ініціалізація існуючих товарів
     $('select[id$="-product"]').each(function() {
         applySelect2(this, i18n.searchProduct);
-        checkStock($(this).closest('.row.item-form')); // Перевірка залишків при завантаженні
+        checkStock($(this).closest('.row.item-form')); 
     });
 
     function updateNotes() {
         const notesField = $('textarea[name="notes"]');
-        let val = notesField.val() || "";
-        let manualNotes = val.split(i18n.notesHeader)[0].trim();
-        let autoNotes = "";
+        const currentText = notesField.val();
+        const separator = "--------------------";
+        let manualPart = currentText.split(/--------------------+/)[0].trim();
 
+        let autoNotes = "";
         $('.item-form:visible').each(function() {
-            const productText = $(this).find('select[id$="-product"] option:selected').text();
+            const productText = $(this).find('select[id$="-product"] option:selected').text().trim();
             const pType = $(this).find('.pallet-type').val();
             const pCount = $(this).find('.pallet-count').val();
             const pUnits = $(this).find('.pallet-units').val();
@@ -275,21 +296,18 @@ $(document).ready(function() {
         });
 
         if (autoNotes) {
-            notesField.val(manualNotes + '\n\n' + i18n.notesHeader + autoNotes);
+            notesField.val(manualPart + "\n" + separator + "\n" + autoNotes.trim()); 
         } else {
-            notesField.val(manualNotes);
+            notesField.val(manualPart);
         }
     }
 
     $('#add-form-btn').click(function() {
         let formIdx = parseInt(totalForms.val());
         let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIdx);
-        
         const $newForm = $(newFormHtml).appendTo(container);
         totalForms.val(formIdx + 1);
-
         applySelect2($newForm.find('select[id$="-product"]'), i18n.searchProduct);
-        updateNotes();
     });
 
     container.on('click', '.remove-form-btn', function() {
@@ -298,11 +316,15 @@ $(document).ready(function() {
         updateNotes();
     });
 
-    // Додано: виклик checkStock при зміні товару або кількості
     $(document).on('change keyup', '.pallet-input, select[id$="-product"], input[id$="-ordered_units"]', function() {
         const row = $(this).closest('.item-form');
+        if ($(this).hasClass('pallet-count') || $(this).hasClass('pallet-units')) {
+            calculateTotalUnits(row);
+        }
+        if ($(this).hasClass('pallet-input') || $(this).is('select')) {
+            updateNotes();
+        }
         checkStock(row);
-        updateNotes();
     });
 });
 </script>

@@ -6,135 +6,125 @@
 {% block title %}{% trans "Архів Замовлень" %}{% endblock %}
 
 {% block content %}
+<style>
+    /* Адаптивні стилі для архіву */
+    @media (max-width: 768px) {
+        .table td {
+            font-size: 0.8rem;
+            padding: 0.6rem 0.3rem !important;
+        }
+        /* Колонки, які можуть бути довгими */
+        .col-customer, .col-items, .col-driver, .col-car {
+            min-width: 120px !important;
+            white-space: normal !important;
+        }
+        .badge { font-size: 0.7rem; }
+    }
+    /* Запобігання розриву дати */
+    .col-date { white-space: nowrap; min-width: 90px; }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2><i class="bi bi-archive"></i> {% trans "Архів Замовлень" %}</h2>
 </div>
 
-{# --- ФОРМА ФІЛЬТРАЦІЇ ТА ПОШУКУ --- #}
-<div class="mb-4">
-    <form method="get" class="row g-3 align-items-end" role="search">
-        {# Пошук за текстом #}
-        <div class="col-12 col-md-5 col-lg-4">
-            <label for="id_q" class="form-label">{% trans "Пошук (Замовник/Товар)" %}</label>
-            <input type="text"
-                   name="q"
-                   id="id_q"
-                   class="form-control"
-                   placeholder="{% trans "Пошук..."%}"
-                   value="{{ request.GET.q|default:'' }}">
-        </div>
+{# --- ФОРМА ФІЛЬТРАЦІЇ --- #}
+<div class="card mb-4 border-0 shadow-sm bg-light">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end" role="search">
+            <div class="col-12 col-md-5 col-lg-4">
+                <label for="id_q" class="form-label small fw-bold">{% trans "Пошук (Замовник/Товар)" %}</label>
+                <input type="text" name="q" id="id_q" class="form-control" placeholder="{% trans 'Пошук...' %}" value="{{ request.GET.q|default:'' }}">
+            </div>
 
-        {# Фільтрація за Датою Доставки #}
-        <div class="col-12 col-md-4 col-lg-3">
-            <label for="id_delivery_date_filter" class="form-label">{% trans "Дата доставки" %}</label>
-            <input type="date"
-                   name="delivery_date_filter"
-                   id="id_delivery_date_filter"
-                   class="form-control"
-                   value="{{ request.GET.delivery_date_filter|default:'' }}">
-        </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="id_delivery_date_filter" class="form-label small fw-bold">{% trans "Дата доставки" %}</label>
+                <input type="date" name="delivery_date_filter" id="id_delivery_date_filter" class="form-control" value="{{ request.GET.delivery_date_filter|default:'' }}">
+            </div>
 
-        {# Кнопки дій #}
-        <div class="col-12 col-md-3 col-lg-5 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel"></i> {% trans "Фільтрувати" %}
-            </button>
-
-            {# Кнопка Скинути #}
-            {% if request.GET.q or request.GET.delivery_date_filter %}
-                <a href="{% url 'inventory:order_archive' %}" class="btn btn-outline-secondary">
-                    {% trans "Очистити" %}
-                </a>
-            {% endif %}
-        </div>
-    </form>
+            <div class="col-12 col-md-3 col-lg-5 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 w-md-auto">
+                    <i class="bi bi-funnel"></i> {% trans "Фільтрувати" %}
+                </button>
+                {% if request.GET.q or request.GET.delivery_date_filter %}
+                    <a href="{% url 'inventory:order_archive' %}" class="btn btn-outline-secondary">{% trans "Очистити" %}</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
-{# --- КІНЕЦЬ ФОРМИ ФІЛЬТРАЦІЇ ТА ПОШУКУ --- #}
 
-
-{% if not orders %}
-    <div class="alert alert-info">{% trans "Архів порожній." %}</div>
+{% if not grouped_orders %}
+    <div class="alert alert-info">{% trans "Архів порожній або нічого не знайдено." %}</div>
 {% else %}
 
-    {# Ітеруємося по згрупованих замовленнях #}
     {% for month_key, daily_orders in grouped_orders.items %}
-
-  {# --- ЗАГОЛОВОК ГРУПИ (НОВИЙ МІСЯЦЬ) --- #}
-        <h3 class="mt-4 mb-3 border-bottom pb-2">
-            <i class="bi bi-calendar-check-fill text-secondary"></i>
+        <h3 class="mt-4 mb-3 border-bottom pb-2 text-secondary">
+            <i class="bi bi-calendar3"></i>
             {% if month_key == "No-Date" %}
                 <strong>{% trans "Без дати доставки" %}</strong>
             {% else %}
-                {% trans "Місяць" %}
                 <strong>{{ month_key|date:"F Y" }}</strong>
             {% endif %}
         </h3>
 
-        {# --- КАРТКА З ТАБЛИЦЕЮ ДЛЯ ПОТОЧНОЇ ГРУПИ --- #}
-        <div class="card mb-4 shadow-sm">
+        <div class="card mb-4 shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th style="width: 50px;">{% trans "№" %}</th>
-                                <th style="width: 15%;">{% trans "Замовник" %}</th>
+                                <th>{% trans "Замовник" %}</th>
                                 <th>{% trans "Позиції" %}</th>
-                                <th style="width: 10%;">{% trans "Автомобіль" %}</th>
-                                <th style="width: 10%;">{% trans "Водій" %}</th>
-                                <th style="width: 10%;">{% trans "Дата доставки" %}</th>
-                                <th style="width: 10%;">{% trans "Всього (шт.)" %}</th>
-                                <th style="width: 10%;">{% trans "Статус" %}</th>
-                                <th style="width: 15%;">{% trans "Зміна" %}</th>
+                                <th>{% trans "Авто" %}</th>
+                                <th>{% trans "Водій" %}</th>
+                                <th class="text-center">{% trans "Дата" %}</th>
+                                <th class="text-center">{% trans "шт." %}</th>
+                                <th class="text-center">{% trans "Статус" %}</th>
+                                <th>{% trans "Зміна" %}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {# Ітеруємося по замовленнях всередині поточної групи #}
                             {% for order in daily_orders %}
-                            <tr class="table-secondary">
-                                {# 👇 ВИПРАВЛЕНО: Використовуємо page_obj для наскрізної нумерації #}
-                                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
-                                <td>{{ order.customer }}</td>
-                                <td>
-                                    <ul class="list-unstyled mb-0 small">
+                            <tr class="table-secondary-subtle">
+                                {# ВИПРАВЛЕНО: forloop.counter0 #}
+                                <td class="text-muted small">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                                <td class="col-customer fw-bold">{{ order.customer }}</td>
+                                <td class="col-items">
+                                    <ul class="list-unstyled mb-0" style="font-size: 0.85rem; line-height: 1.2;">
                                         {% for item in order.items.all %}
-                                        <li>{{ item.product.name }} - **{{ item.ordered_units }}** {% trans "шт." %}</li>
+                                            <li class="text-wrap mb-1">
+                                                <i class="bi bi-dot text-primary"></i>
+                                                {{ item.product.name }} — <strong>{{ item.ordered_units }}</strong>
+                                            </li>
                                         {% empty %}
-                                        <li>{% trans "Немає позицій" %}</li>
+                                            <li class="text-muted small italic">{% trans "Немає позицій" %}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
 
-                                {# Дані автомобіля #}
-                                <td>
+                                <td class="col-car">
                                     {% if order.car %}
-                                        <span class="fw-bold">{{ order.car }}</span>
-                                    {% else %}
-                                        <span class="text-muted">–</span>
-                                    {% endif %}
+                                        <span class="small d-block text-wrap">{{ order.car }}</span>
+                                    {% else %}<span class="text-muted">–</span>{% endif %}
                                 </td>
 
-                                {# Дані водія #}
-                                <td>
+                                <td class="col-driver">
                                     {% if order.driver %}
-                                        {{ order.driver }}
-                                    {% else %}
-                                        <span class="text-muted">–</span>
-                                    {% endif %}
+                                        <span class="small d-block text-wrap" style="line-height: 1.1;">{{ order.driver }}</span>
+                                    {% else %}<span class="text-muted">–</span>{% endif %}
                                 </td>
 
-                                {# Дата доставки (виводиться повна дата) #}
-                                <td>
-                                    {% if order.delivery_date %}
-                                        {{ order.delivery_date|date:"d.m.Y" }}
-                                    {% else %}
-                                        <span class="text-muted">–</span>
-                                    {% endif %}
+                                <td class="col-date text-center small">
+                                    {{ order.delivery_date|date:"d.m.Y"|default:"–" }}
                                 </td>
 
-                                <td><strong>{{ order.total_units }}</strong></td>
-                                <td><span class="badge bg-secondary">{{ order.get_status_display }}</span></td>
-                                <td>{{ order.work_shift }}</td>
+                                <td class="text-center"><strong>{{ order.total_units }}</strong></td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary opacity-75">{{ order.get_status_display }}</span>
+                                </td>
+                                <td class="small text-muted">{{ order.work_shift|default:"–" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -142,17 +132,13 @@
                 </div>
             </div>
         </div>
-    {% empty %}
-        {# Цей блок буде показано, якщо 'grouped_orders' порожній #}
     {% endfor %}
-
 {% endif %}
 
-{# --- БЛОК ПАГІНАЦІЇ --- #}
+{# --- ПАГІНАЦІЯ --- #}
 {% if is_paginated %}
 <nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
-        {# Додаємо параметри фільтрації до пагінації #}
         {% with q=request.GET.q|default:'' delivery_date=request.GET.delivery_date_filter|default:'' %}
             {% if page_obj.has_previous %}
                 <li class="page-item"><a class="page-link" href="?page=1&q={{ q }}&delivery_date_filter={{ delivery_date }}">&laquo;&laquo;</a></li>
@@ -160,7 +146,7 @@
             {% endif %}
 
             <li class="page-item disabled">
-                <span class="page-link">{% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}.</span>
+                <span class="page-link text-dark">{% trans "Сторінка" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
             </li>
 
             {% if page_obj.has_next %}
@@ -171,6 +157,4 @@
     </ul>
 </nav>
 {% endif %}
-{# --- КІНЕЦЬ БЛОКУ ПАГІНАЦІЇ --- #}
-
 {% endblock %}

@@ -97,7 +97,7 @@
 {# --- КОНТЕЙНЕР ДЛЯ РЕЗУЛЬТАТІВ (ОНОВЛЮЄТЬСЯ ЧЕРЕЗ HTMX) --- #}
 <div id="order-results"
     hx-get="{{ request.path }}" /* Початкове завантаження даних через HTMX */
-    hx-trigger="every 15s" /* Автоматичне оновлення кожні 15 секунд */
+    hx-trigger="every 22s" /* Автоматичне оновлення кожні 22 секунди */
     hx-push-url="false" /* Не змінюємо URL при оновленні */
     hx-target="this"/* Оновлюємо тільки цей контейнер */
     hx-indicator="#main-spinner"
