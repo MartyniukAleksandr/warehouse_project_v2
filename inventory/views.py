@@ -21,7 +21,7 @@ from .pdf_utils import generate_pdf_response
 from datetime import date
 from collections import defaultdict
 from django.contrib.auth.decorators import user_passes_test
-
+from .telegram_utils import send_order_telegram_notification, send_order_cancelled_simple_notification
 
 
 # Допоміжна функція для створення записів у журналі
@@ -559,7 +559,8 @@ def order_create(request):
 
                     # Зберігаємо позиції замовлення
                     formset.save()
-
+                    # 📢 НАДСИЛАЄМО СПОВІЩЕННЯ В ТЕЛЕГРАМ (Дані вже зафіксовані в БD)
+                    send_order_telegram_notification(order.id, is_created=True)
                     # Формуємо повідомлення для користувача
                     status_message = _("Товар успішно зарезервовано для доставки {date}.").format(
                         date=delivery_date.strftime('%Y-%m-%d'))
@@ -690,6 +691,8 @@ def order_update(request, pk):
                     # Зберігаємо форми
                     order_form.save()
                     formset.save()
+                    # 📢 НАДСИЛАЄМО СПОВІЩЕННЯ В ТЕЛЕГРАМ (Редагування, тому is_created=False)
+                    send_order_telegram_notification(order.id, is_created=False)
                     
                     messages.success(request, _("Замовлення успішно оновлено."))
                     return redirect('inventory:order_list')
@@ -798,6 +801,7 @@ def cancel_order(request, pk):
             # Змінюємо статус замовлення на "Скасовано"
             order.status = Order.OrderStatus.CANCELLED
             order.save()
+            send_order_cancelled_simple_notification(order.id, order.customer)
             messages.success(request, _("Замовлення №{id} скасовано. Товар повернуто на склад.").format(id=order.id))
     except Exception as e:
         messages.error(request, _("Сталася помилка при скасуванні замовлення: {}").format(e))

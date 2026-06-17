@@ -136,6 +136,14 @@ msgstr "Wpisz swój komentarz powyżej. Dane o paletach zostaną dodane automaty
 msgid "Видалити назавжди?"
 msgstr "Usunąć na stałe?"
 
+msgid "Прийняти"
+msgstr "Przyjmij"
+
+msgid "Прийняти постачання? Товар додасться до залишків."
+msgstr "Przyjąć dostawę? Towar zostanie dodany do stanów magazynowych."
+
+msgid "Видалити це постачання?"
+msgstr "Usunąć tę dostawę?"
 
 #: .\inventory\admin.py:33
 msgid "Залишки на складі"
